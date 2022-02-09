@@ -1,0 +1,73 @@
+{
+    "created_at": null,
+    "created_by": null,
+    "updated_at": null,
+    "updated_by": null,
+    "deleted": false,
+    "deleted_by": null,
+    "deleted_at": null,
+    "id": null,
+    "nguoidan_id": "87c721d9-f70e-4f37-ae42-572194a0a9fd",
+    "qrcode": null,
+    "loai_khaibao": null,
+    "ky_khaibao": 2,
+    "thongtin_sangloc": [
+        {
+            "ma_cauhoi": 1,
+            "danhsach_checked": []
+        },
+        {
+            "ma_cauhoi": 2,
+            "danhsach_checked": []
+        },
+        {
+            "ma_cauhoi": 3,
+            "danhsach_checked": [
+                {
+                    "id": "d330368c-4827-43eb-be62-8148238e1a5e",
+                    "text": "Không đo",
+                    "diem_quy_doi": 0
+                }
+            ]
+        },
+        {
+            "ma_cauhoi": 4,
+            "danhsach_checked": []
+        },
+        {
+            "ma_cauhoi": 5,
+            "danhsach_checked": []
+        },
+        {
+            "ma_cauhoi": 6,
+            "danhsach_checked": []
+        }
+    ],
+    "diem_quy_doi": 0,
+    "ngayco_trieuchung_benh": null,
+    "co_trieu_chung": false,
+    "benh_nang_hon": false,
+    "muc_do_sp02": 0,
+    "kho_tho": false,
+    "ton_thuong_phoi": false,
+    "tinh_trang_cap_cuu": false,
+    "doi_tuong_dac_biet": false,
+    "ghi_chu": null,
+    "thoigian_khaibao": null,
+    "loai_ngon_ngu": null,
+    "khai_ho": false,
+    "canbo_id": null,
+    "canbo_ten": null,
+    "thoigian_xacnhan": null,
+    "thoigian_trieuchung_benh": null,
+    "nguoi_xacnhan_id": null,
+    "nguoi_xacnhan_ten": null,
+    "donvi_xacnhan_id": null,
+    "donvi_xacnhan_ten": null,
+    "ghichu_huongxuly": null,
+    "ip": null,
+    "donvi_khaibao_id": null,
+    "donvi_khaibao_ten": null,
+    "trang_thai": 0,
+    "nguoidan": null
+}

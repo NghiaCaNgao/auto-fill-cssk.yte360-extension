@@ -1,0 +1,32 @@
+@import "../../styles/common.scss";
+@import "../../styles/colors.scss";
+@import "../../styles/fonts.scss";
+
+.navbar__user-icon {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  overflow: hidden;
+}
+
+.navbar__user-info {
+  width: 180px;
+  text-overflow: ellipsis;
+  display: block;
+  margin-left: 15px;
+  .username {
+    @extend .nunito-font;
+    font-weight: 700;
+    color: $gray-900;
+    font-size: 1em;
+    margin: 0;
+  }
+}
+
+.role-tag {
+  @extend .nunito-font;
+  font-weight: 700;
+  color: $gray-300;
+  font-size: 0.8em;
+  margin: 0;
+}

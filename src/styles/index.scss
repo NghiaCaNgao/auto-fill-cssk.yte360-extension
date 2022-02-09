@@ -1,0 +1,50 @@
+@import "colors.scss";
+@import "fonts.scss";
+@import "common.scss";
+
+html {
+  overflow-x: hidden;
+}
+
+.af-full-page {
+  @extend .nunito-font;
+  color: $gray-900;
+
+  .page {
+    margin-top: 50px;
+    padding: 0 20px;
+  }
+}
+
+.section {
+  h2 {
+    font-weight: 700;
+    margin-bottom: 50px;
+  }
+
+  label {
+    font-weight: 700;
+    margin-bottom: 10px;
+  }
+
+  .form-group {
+    margin-bottom: 15px;
+  }
+}
+
+.page-name {
+  h1 {
+    font-weight: 700;
+  }
+  p {
+    font-size: 14px;
+    color: $gray-300;
+  }
+}
+
+.outlet {
+  padding: 70px 10%;
+}
+.btn {
+  font-weight: 600;
+}

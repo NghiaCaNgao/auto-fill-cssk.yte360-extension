@@ -1,24 +1,24 @@
-import logo from './logo.svg';
-import './App.css';
+import Navbar from "./components/Navbar/Navbar";
+import Run from "./views/Run/Run";
+import Account from "./views/Account/Account";
+import Configs from "./views/Configs/Configs";
+
+import { HashRouter as Router, Routes, Route } from 'react-router-dom';
 
 function App() {
   return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
-    </div>
+    <Router>
+      <div className="d-flex">
+        <Navbar />
+        <div className="container-fluid vh-100 overflow-auto outlet">
+          <Routes>
+            <Route path="/" element={<Run />} />
+            <Route path="/account" element={<Account />} />
+            <Route path="/configs" element={<Configs />} />
+          </Routes>
+        </div>
+      </div>
+    </Router>
   );
 }
 
