@@ -2,23 +2,18 @@
 @import "../../styles/colors.scss";
 @import "../../styles/fonts.scss";
 
+.af-navbar{
+  border-right: solid 1.5px $gray-200;
+}
 .navbar__icon {
   position: relative;
-  height: 55px;
-  width: 100%;
-  padding: 0 16px;
+  height: 60px;
+  width: 60px;
   margin-bottom: 10px;
   cursor: pointer;
   text-decoration: none;
-  border-radius: 15px;
+  border-radius: 20px;
   transition: all 0.3s ease;
-  .title {
-    font-size: 1em;
-    display: block;
-    color: $gray-300;
-    margin: 0 0 0 10px;
-    width: 100%;
-  }
   &::after {
     content: "";
     height: 0;
@@ -27,11 +22,8 @@
     background-color: $purple-500;
     position: absolute;
     top: 15px;
-    left: -23px;
+    left: -16px;
     transition: all 0.3s ease-in-out;
-  }
-  h4 {
-    display: none;
   }
   svg {
     height: 55%;
@@ -44,9 +36,6 @@
   &.active {
     position: relative;
     background-color: $purple-500;
-    .title {
-      color: white;
-    }
     svg path {
       stroke: white;
       stroke-width: 2px;

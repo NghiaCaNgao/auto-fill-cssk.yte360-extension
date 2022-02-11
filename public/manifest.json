@@ -24,7 +24,6 @@
     },
     "homepage_url": "https://path/to/homepage",
     "permissions": [
-        "tabs",
         "notifications"
     ]
 }

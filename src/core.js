@@ -201,7 +201,7 @@ async function checkDeclare(patientID) {
     const response = await fetchData(path, "declare", { patientID }, { results_per_page: 1 });
     if (response.ok) {
         const { created_at } = response.data.objects[0];
-        return checkDate(created_at) ? [] : ["declare date wrong"];
+        return checkDate(created_at) ? [] : ["Sai ngày khai báo"];
     }
     else {
         return [response.error_message];
@@ -214,16 +214,16 @@ async function checkUpReport(patientID) {
     if (response.ok) {
         const { created_at, loidan_bacsi, loai_xu_ly } = response.data.objects[0];
         let errors = [];
-        if (!checkDate(created_at)) errors.push("checkup date wrong");
-        if (!checkMatch(loidan_bacsi, "advice")) errors.push("Advice wrong");
-        if (!checkMatch(loai_xu_ly, "treatment-type")) errors.push("Treatment type wrong");
+        if (!checkDate(created_at)) errors.push("Sai ngày khám");
+        if (!checkMatch(loidan_bacsi, "advice")) errors.push("Sai lời khuyên");
+        if (!checkMatch(loai_xu_ly, "treatment-type")) errors.push("Sai loại xử lý");
         return errors;
     } else {
         return [response.error_message];
     }
 }
 
-async function postDeclare(patientID) {
+async function postDeclare(patientID, options) {
     const path = "/khaibao_theodoi/khaiho";
     const declareReport = declare_template;
     declareReport.nguoidan_id = patientID;
@@ -241,7 +241,7 @@ async function postDeclare(patientID) {
     }
 }
 
-async function postCheckUp(patientID) {
+async function postCheckUp(patientID, option) {
     const path = "/khamchuabenh/create";
     const checkUpReport = check_up_template;
     checkUpReport.nguoidan_id = patientID;
@@ -263,6 +263,32 @@ async function postCheckUp(patientID) {
     }
 }
 
+async function removeDeclare(patientID) { }
+async function removeCheckUp(patientID) {
+    const GetCheckupPath = "/thongtin_khambenh";
+    const DeleteCheckupPath = "/khamchuabenh/delete";
+    const responseCheckUp = await fetchData(GetCheckupPath, "checkup", { patientID }, { results_per_page: 1 });
+    if (responseCheckUp.ok) {
+        const CheckupID = await responseCheckUp.data.objects[0].id;
+        const responseDelete = await postData(
+            DeleteCheckupPath,
+            {
+                id: CheckupID
+            },
+            { 'X-USER-TOKEN': localStorage.getItem('user-token') || '' }
+        );
+
+        if (responseDelete.ok) {
+            return [];
+        } else {
+            return [responseDelete.error_message];
+        }
+    }
+    else {
+        return [responseCheckUp.error_message];
+    }
+}
+
 async function checkPatient(patientID) {
     const result = [
         ...await checkDeclare(patientID),
@@ -273,19 +299,19 @@ async function checkPatient(patientID) {
         : { type: "error", value: result };
 }
 
-async function run(patientID, mode) {
+async function run(patientID, mode, time) {
     let result = [];
     switch (mode) {
         case "1":
-            result = [...await postDeclare(patientID)];
+            result = [...await postDeclare(patientID, { time: time })];
             break;
         case "2":
-            result = [...await postCheckUp(patientID)];
+            result = [...await postCheckUp(patientID, { time: time })];
             break;
         case "3":
             result = [
-                ...await postDeclare(patientID),
-                ...await postCheckUp(patientID)
+                ...await postDeclare(patientID, { time: time }),
+                ...await postCheckUp(patientID, { time: time })
             ];
             break;
         default:
@@ -295,6 +321,31 @@ async function run(patientID, mode) {
 
     return (result.length === 0)
         ? { type: "done", value: [] }
+        : { type: "error", value: result };
+}
+
+async function remove(patientID, mode) {
+    let result = [];
+    switch (mode) {
+        case "1":
+            result = [...await removeDeclare(patientID)];
+            break;
+        case "2":
+            result = [...await removeCheckUp(patientID)];
+            break;
+        case "3":
+            result = [
+                ...await removeDeclare(patientID),
+                ...await removeCheckUp(patientID)
+            ];
+            break;
+        default:
+            result = [];
+            break;
+    }
+
+    return (result.length === 0)
+        ? { type: "deleted", value: [] }
         : { type: "error", value: result };
 }
 
@@ -353,6 +404,7 @@ const Core = {
     checkPatient,
     genKey,
     delay,
+    remove,
     run
 }
 

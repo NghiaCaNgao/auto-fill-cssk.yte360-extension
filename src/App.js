@@ -10,7 +10,7 @@ function App() {
     <Router>
       <div className="d-flex">
         <Navbar />
-        <div className="container-fluid vh-100 overflow-auto outlet">
+        <div className="container-fluid vh-100 overflow-auto pt-5 px-5">
           <Routes>
             <Route path="/" element={<Run />} />
             <Route path="/account" element={<Account />} />

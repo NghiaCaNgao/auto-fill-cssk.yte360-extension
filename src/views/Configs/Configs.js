@@ -11,7 +11,6 @@ export default class Check extends react.Component {
             healthStatus: "1",
             diagnosis: "1",
             delayRequest: "500",
-            language: "en",
         }
     }
 
@@ -27,8 +26,7 @@ export default class Check extends react.Component {
             treatmentType: localStorage.getItem("treatment-type") || "1",
             healthStatus: localStorage.getItem("health-status") || "1",
             diagnosis: localStorage.getItem("diagnosis") || "1",
-            delayRequest: localStorage.getItem("delay-request") || "500",
-            language: localStorage.getItem("language") || "en",
+            delayRequest: localStorage.getItem("delay-request") || "500"
         });
     }
     saveToLocal(data) {
@@ -44,7 +42,6 @@ export default class Check extends react.Component {
             "health-status": this.state.healthStatus,
             "diagnosis": this.state.diagnosis,
             "delay-request": this.state.delayRequest,
-            "language": this.state.language,
         });
         swal("Success", "Save successfully!", "success");
     }

@@ -2,23 +2,10 @@
 @import "../../styles/colors.scss";
 @import "../../styles/fonts.scss";
 
-.navbar__wrapper {
-  height: 100vh;
-  padding: 20px;
-}
-
-.navbar__container {
-  height: 100%;
-  border-radius: 15px;
-  padding: 20px;
-  @extend .af-shadow-1;
-}
-
 .logo {
   height: 64px;
   width: 64px;
   padding: 12px;
-  margin: 20px 0 0 20px;
   border-radius: 25px;
   background-color: $purple-500;
 }
@@ -30,9 +17,9 @@
     stroke: $gray-300;
   }
   h4 {
-    margin-left: 20px;
     font-size: 1rem;
     font-weight: 700;
+    text-align: center;
     color: $gray-300;
     @extend .nunito-font;
   }
