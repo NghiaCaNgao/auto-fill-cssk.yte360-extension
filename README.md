@@ -24,6 +24,9 @@ Autofill will help the medical staff speed up the work by auto-generating the re
 - #### 1.0.0
   - Redesign the navbar, increasing the workspace,...
   - Add the "remove the last checkup report " feature
+- #### 1.0.1
+  - Fix delay for each request
+  - Add delay for each post record
 
 ### Author and contributor
 - Dev: **_Nghiacangao_**

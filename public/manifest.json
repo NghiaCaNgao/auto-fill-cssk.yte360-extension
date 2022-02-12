@@ -1,8 +1,8 @@
 {
     "manifest_version": 3,
-    "name": "Auto Fill CSSK",
+    "name": "Autofill CSSK",
     "short_name": "AF CSSK",
-    "version": "1.0.0",
+    "version": "1.0.1",
     "action": {
         "default_icon": {
             "16": "assets/logo/logo_16.png",
@@ -11,7 +11,7 @@
         },
         "default_title": "Manage your work"
     },
-    "description": "Auto Fill CSSK. Make your work better.",
+    "description": "Autofill CSSK. Make your work better.",
     "icons": {
         "16": "assets/logo/logo_16.png",
         "48": "assets/logo/logo_48.png",

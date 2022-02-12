@@ -11,6 +11,7 @@ export default class Check extends react.Component {
             healthStatus: "1",
             diagnosis: "1",
             delayRequest: "500",
+            delayPost: "10000"
         }
     }
 
@@ -26,7 +27,8 @@ export default class Check extends react.Component {
             treatmentType: localStorage.getItem("treatment-type") || "1",
             healthStatus: localStorage.getItem("health-status") || "1",
             diagnosis: localStorage.getItem("diagnosis") || "1",
-            delayRequest: localStorage.getItem("delay-request") || "500"
+            delayRequest: localStorage.getItem("delay-request") || "500",
+            delayPost: localStorage.getItem("delay-post") || "10000"
         });
     }
     saveToLocal(data) {
@@ -42,6 +44,7 @@ export default class Check extends react.Component {
             "health-status": this.state.healthStatus,
             "diagnosis": this.state.diagnosis,
             "delay-request": this.state.delayRequest,
+            "delay-post": this.state.delayPost
         });
         swal("Success", "Save successfully!", "success");
     }
@@ -127,9 +130,21 @@ export default class Check extends react.Component {
                                         type="number"
                                         className="form-control"
                                         id="config-delay-request"
-                                        placeholder="Delay request"
+                                        placeholder="Độ trễ"
                                         value={this.state.delayRequest}
                                         onChange={this.handleChange.bind(this, "delayRequest")} />
+                                </div>
+                            </div>
+                            <div className="form-group row">
+                                <label htmlFor="config-delay-post" className="col-6 col-form-label">Độ trễ giữa các lần tạo</label>
+                                <div className="col-6">
+                                    <input
+                                        type="number"
+                                        className="form-control"
+                                        id="config-delay-post"
+                                        placeholder="Độ trễ"
+                                        value={this.state.delayPost}
+                                        onChange={this.handleChange.bind(this, "delayPost")} />
                                 </div>
                             </div>
                         </div>

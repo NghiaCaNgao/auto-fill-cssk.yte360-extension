@@ -3,6 +3,7 @@ import swal from "sweetalert";
 import Core from "../../core"
 
 const DELAY = 500;
+const DELAY_POST = 10000;
 
 export default class Run extends React.Component {
     constructor(props) {
@@ -11,6 +12,7 @@ export default class Run extends React.Component {
             isRunning: false,
             isCheckedAll: true,
             delay: DELAY,
+            delayPost: DELAY_POST,
             runMode: "1",
             filter: {
                 phone: "",
@@ -36,7 +38,8 @@ export default class Run extends React.Component {
                 to: filter.to || "",
                 is_12: filter.is_12 || false,
             },
-            delay: Number(localStorage.getItem('delay')) || 500,
+            delay: Number(localStorage.getItem('delay-request')) || 500,
+            delayPost: Number(localStorage.getItem('delay-post')) || 10000,
             runMode: localStorage.getItem('run-mode') || "1",
         });
     }
@@ -95,13 +98,14 @@ export default class Run extends React.Component {
             isRunning: true
         });
 
-        for (let i = 0; i < this.state.patientList.length; i++) {
+        const numberOfPatients = this.state.patientList.length;
+        for (let i = 0; i < numberOfPatients; i++) {
             if (this.state.patientList[i].checked) {
                 const patientList = this.state.patientList;
                 const result = await Core.checkPatient(patientList[i].id)
                 patientList[i].status = result;
                 this.setState({ patientList });
-                await Core.delay(DELAY);
+                if (i !== numberOfPatients - 1) await Core.delay(this.state.delay);
             }
         }
 
@@ -126,16 +130,18 @@ export default class Run extends React.Component {
                         isRunning: true
                     });
                     localStorage.setItem('run-mode', this.state.runMode);
-                    for (let i = 0; i < this.state.patientList.length; i++) {
-                        const field = this.state;
-                        if (field.patientList[i].checked) {
+                    const runMode = this.state.runMode;
+                    const numberOfPatients = this.state.patientList.length;
+                    for (let i = 0; i < numberOfPatients; i++) {
+                        const patientList = this.state.patientList;
+                        if (patientList[i].checked) {
                             const result = await Core.run(
-                                field.patientList[i].id,
-                                field.runMode,
+                                patientList[i].id,
+                                runMode,
                             );
-                            field.patientList[i].status = result;
-                            this.setState(field);
-                            await Core.delay(DELAY);
+                            patientList[i].status = result;
+                            this.setState({ patientList });
+                            if (i !== numberOfPatients - 1) await Core.delay(this.state.delayPost);
                         }
                     }
                     this.setState({
