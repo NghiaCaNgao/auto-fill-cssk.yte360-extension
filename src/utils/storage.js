@@ -18,6 +18,28 @@ async function getDataFromChromeStorage(keys) {
     });
 }
 
+/* Get user token from chrome storage
+* @return {Promise} of String
+*/
+
+async function getToken() {
+    let data = await getDataFromChromeStorage(["token"]);
+    return data.token;
+}
+
+/* Get posting record config from chrome storage
+* @return {Promise} of Object
+*/
+async function getConfig() {
+    let data = await getDataFromChromeStorage(["post_config"]);
+    return {
+        treatment_type: data.post_config.treatment_type || "2",
+        health_status: data.post_config.health_status || "2",
+        diagnosis: data.post_config.diagnosis || "1",
+        advice: data.post_config.advice || "",
+    };
+}
+
 /* Set data to chrome storage
 * @param {Object} data
 * @return {Promise} of undefined
@@ -30,6 +52,31 @@ async function setDataToChromeStorage(data) {
         });
     });
 }
+
+/* Set account info to chrome storage
+* @param {Object} data
+* @return {Promise} of undefined
+*/
+
+async function setAccountInfo(data) {
+    let { username, token, user, medical_station } = data;
+    user = user || {};
+    medical_station = medical_station || {};
+
+    await setDataToChromeStorage({
+        username,
+        token,
+        user: {
+            name: user.name,
+        },
+        medical_station: {
+            name: medical_station.name,
+            address: medical_station.address,
+            wardsID: medical_station.wardsID,
+            stationID: medical_station.stationID
+        },
+    })
+};
 
 /* Clear all data in chrome storage
 * @return {Promise} of undefined
@@ -51,9 +98,9 @@ async function createDefaultData() {
     await setDataToChromeStorage({
         username: "",
         auto_check: false,
+        token: "",
         user: {
-            name: "",
-            token: ""
+            name: ""
         },
         medical_station: {
             name: "",
@@ -66,7 +113,10 @@ async function createDefaultData() {
 
 const Storage = {
     getDataFromChromeStorage,
+    getToken,
+    getConfig,
     setDataToChromeStorage,
+    setAccountInfo,
     clearChromeStorage,
     createDefaultData
 }

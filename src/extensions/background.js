@@ -26,6 +26,7 @@ function createContextMenu(id, title, checked = false) {
 }
 
 function autoCheck(isCheck = true) {
+    console.log("autoCheck", isCheck);
     chrome.contextMenus.update("auto_check", {
         checked: isCheck
     });
@@ -41,14 +42,15 @@ function saveToken() {
             currentWindow: true,
         },
         function (tabs) {
+            console.log(tabs);
             chrome.tabs.sendMessage(
                 tabs[0].id,
                 { command: "get_token" },
                 function (response) {
                     if (response.success) {
-                        chrome.storage.sync.set({
-                            token: response.token
-                        });
+                        Storage.setDataToChromeStorage({ token: response.token });
+                        
+                        Notification.create({title: "Auto Fill", message: "Save token success!"});
                     } else {
                         console.log(response.message);
                     }
@@ -60,7 +62,7 @@ function saveToken() {
 chrome.runtime.onInstalled.addListener(async details => {
     // Clear all notification
     try {
-        console.log(await clearNotifications());
+        console.log(await Notification.clearNotifications());
     } catch (error) {
         console.log(error);
     }
@@ -69,23 +71,28 @@ chrome.runtime.onInstalled.addListener(async details => {
     if (details.reason === chrome.runtime.OnInstalledReason.INSTALL) {
         // Create new welcome notification for first time
         await Storage.createDefaultData();
-        await Notification.createBasicNotification("Auto Fill", "Welcome to Auto FIll", "af_install");
+        await Notification.createBasicNotification({
+            title: "Welcome to Auto Fill",
+            message: "Boost your work right now!",
+            id: "af_installed",
+        });
     }
     else if (details.reason === chrome.runtime.OnInstalledReason.UPDATE) {
-        await Notification.createBasicNotification(
-            title = "Auto Fill",
-            message = "Update successfully",
-            id = "af_update",
-            buttons = [{
+        await Notification.createBasicNotification({
+            title: "Autofill",
+            message: "Update successfully",
+            id: "af_updated",
+            buttons: [{
                 title: "View changelog",
-            }]);
+            }]
+        });
     }
 });
 
 // On click notification
 chrome.notifications.onButtonClicked.addListener(
     (notificationId, buttonIndex) => {
-        if (notificationId === "ok_update" && buttonIndex === 0) {
+        if (notificationId === "af_updated" && buttonIndex === 0) {
             createTab(HomePagePath);
         }
     });
@@ -105,19 +112,28 @@ chrome.commands.onCommand.addListener((command) => {
     }
 });
 
-// Create context menu
-chrome.contextMenus.removeAll();
-const auto_check_status = await Storage.getDataFromChromeStorage("auto_check");
-createContextMenu("auto_check", "Tự động kiểm tra", auto_check_status);
-createContextMenu("save_token", "Lưu token");
-
+// handle context menu click
 chrome.contextMenus.onClicked.addListener(async (info, tab) => {
     switch (info.menuItemId) {
-        case "auto_check":
+        case "auto_check": {
+            console.log(info.checked);
             autoCheck(info.checked);
             break;
-        case "save_token":
+        }
+        case "save_token": {
             saveToken();
             break;
+        }
     }
 });
+
+// Create context menu
+chrome.contextMenus.removeAll();
+createContextMenu("auto_check", "Tự động kiểm tra", true);
+createContextMenu("save_token", "Lưu token");
+
+Storage.getDataFromChromeStorage(["auto_check"])
+    .then((data) => {
+        const auto_check_status = data.auto_check || false;
+        autoCheck(auto_check_status);
+    });

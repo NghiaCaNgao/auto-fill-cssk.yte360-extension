@@ -1,109 +1,108 @@
 import axios from 'axios';
-import check_up_template from '../data/check_up.json';
-import declare_template from '../data/declare.json';
+import Storage from "./storage";
+import Utils from './utils';
 
-async function loginAction(username, password) {
-    try {
-        const response = await axios({
-            method: 'post',
-            url: "https://chamsocsuckhoe.yte360.com/api/v1/login",
-            headers: {
-                'Content-Type': 'application/json',
-                'Access-Control-Allow-Origin': '*',
-            },
-            data: JSON.stringify({
-                data: username,
-                password: password
-            })
-        });
-        return {
-            ok: true,
-            data: response.data
-        }
-    } catch (error) {
-        return {
-            ok: false,
-            error_message: error.response.data.error_message || error.message
-        }
-    }
-}
+import CHECKUP_TEMPLATE from '../data/check_up.json';
+import DECLARE_TEMPLATE from '../data/declare.json';
 
-function getQuery(filter) {
+const HOST = "https://chamsocsuckhoe.yte360.com/api/v1";
+
+const END_POINT = Object.freeze({
+    GET_FILTER: HOST + "/theodoi_tainha_search",
+    GET_CURRENT_USER: HOST + "/current_user",
+    GET_DECLARE: HOST + "/khaibao_theodoi",
+    GET_CHECKUP: HOST + "/thongtin_khambenh",
+
+    POST_LOGIN: HOST + "/login",
+    POST_DECLARE: HOST + "/khaibao_theodoi/khaiho",
+    POST_CHECKUP: HOST + "/khamchuabenh/create",
+
+    DELETE_CHECK_UP: HOST + "/khamchuabenh/delete",
+
+});
+
+const ORDER_BY = Object.freeze({
+    LAST_CHECKUP: "thoigian_khaibao_gannhat",
+    DECLARE: "thoigian_khaibao",
+    CHECKUP: "ngay_kham",
+});
+
+const DIRECTION = Object.freeze({
+    ASC: "asc",
+    DESC: "desc"
+});
+
+/* Create query object from filter object
+* @param {object} filter
+* @return {Query Object}
+*/
+
+function createQuery(filter, order_by, direction) {
     const filterRequest = [];
-    const mapKeys = {
+    const alias = {
         phone: "so_dien_thoai",
         name: "tenkhongdau",
         treatment_day: "ngay_benh_thu",
         medical_station: "donvi_id",
-        ward_id: "xaphuong_id"
+        ward_id: "xaphuong_id",
+        was_deleted: "deleted",
+        patient_id: "nguoidan_id",
     }
 
     if (filter && typeof (filter) === 'object') {
         for (let key in filter) {
-            if (mapKeys[key] && filter[key].trim() !== "") {
+            if (alias[key] && filter[key].trim() !== "") {
                 let obj = {};
-                obj[mapKeys[key]] = {
+                obj[alias[key]] = {
                     "$eq": removeAccents(filter[key]).trim()
                 };
                 filterRequest.push(obj);
             }
         }
     }
-
     return {
-        "filters":
-        {
+        "filters": {
             "$and": filterRequest
         },
         "order_by": [
             {
-                "field": "thoigian_khaibao_gannhat",
-                "direction": "asc"
-            }]
-    }
-}
-
-function getQueryForCheck(patientID, type) {
-    const patientIDAsString = patientID ? patientID : "";
-    return {
-        "filters": {
-            "$and": [
-                {
-                    "deleted": {
-                        "$eq": false
-                    }
-                },
-                {
-                    "nguoidan_id": {
-                        "$eq": patientIDAsString
-                    }
-                }
-            ]
-        },
-        "order_by": [
-            {
-                "field": (type === "declare") ? "thoigian_khaibao" : "ngay_kham",
-                "direction": "desc"
+                "field": order_by,
+                "direction": direction
             }
         ]
     }
 }
 
-async function fetchData(path, type, filter, params) {
-    const host = "https://chamsocsuckhoe.yte360.com/api/v1"
-    const query = (type) ? getQueryForCheck(filter.patientID, type) : getQuery(filter);
-    let headers = {
-        'X-USER-TOKEN': localStorage.getItem('user-token') || ''
-    }
+/* Fetches data from server
+* @param {string} endpoint
+* @param {string} type
+* @param {object} data
+* @param {object} params
+* @return {Promise} data from server
+*/
+
+async function fetchData(endpoint, data, type, params) {
+    const query = (type)
+        ? createQuery(
+            { patient_id: data.patientID },
+            (type === "declare") ? ORDER_BY.DECLARE :
+                type === "checkup" && ORDER_BY.CHECKUP,
+            DIRECTION.DESC)
+        : createQuery(data, ORDER_BY.LAST_CHECKUP, DIRECTION.ASC);
+
+    let user_token = await Storage.getToken() || '';
 
     try {
-        const response = await axios.get(host + path, {
+        const response = await axios.get(endpoint, {
             params: {
                 ...params,
                 q: query
             },
-            headers: headers
+            headers: {
+                'X-USER-TOKEN': user_token
+            }
         });
+
         return {
             ok: true,
             data: response.data
@@ -116,19 +115,27 @@ async function fetchData(path, type, filter, params) {
     }
 }
 
-async function postData(path, data, headers) {
-    const host = "https://chamsocsuckhoe.yte360.com/api/v1"
+/* Post data to server
+* @param {string} endpoint
+* @param {object} data
+* @return {Promise} data from server
+*/
+
+async function postData(endpoint, data, isLogin) {
+    let user_token = (isLogin)
+        ? await Storage.getToken() || ''
+        : '';
+
     try {
-        const response = await axios({
-            method: 'post',
-            url: host + path,
+        const response = await axios.post(endpoint, {
             headers: {
                 'Content-Type': 'application/json',
                 'Access-Control-Allow-Origin': '*',
-                ...headers
+                'X-USER-TOKEN': user_token
             },
             data: JSON.stringify(data)
         });
+
         return {
             ok: true,
             data: response.data
@@ -141,64 +148,19 @@ async function postData(path, data, headers) {
     }
 }
 
-async function getFilter(filter) {
-    const path = "/theodoi_tainha_search";
-    const { from, to, ...restFilter } = filter;
-    if (from || to) {
-        if (from.trim() !== "" || to.trim() !== "") {
-            if (
-                Number.isInteger(Number(from)) &&
-                Number.isInteger(Number(to))) {
-                const result = [];
-                const start = Number(from);
-                const end = Number(to);
-                for (let i = start; i <= end; i++) {
-                    restFilter.treatment_day = i.toString();
-                    result.push(...await this.getFilter(restFilter));
-                }
-                return result;
-            }
-            else return [];
-        } else return [];
-
-    }
-    else {
-        const response = await fetchData(path, undefined, filter);
-        if (response.ok) {
-            const data = [...response.data.objects];
-            for (let i = 1; i < response.data.total_pages; i++) {
-                const response = await fetchData(path, undefined, filter, { page: i + 1 });
-                if (response.ok) {
-                    data.push(...response.data.objects);
-                }
-            }
-            const result = data.map(item => {
-                return {
-                    id: item.id,
-                    name: item.ho_ten,
-                    phone: item.so_dien_thoai,
-                    treatment_type: item.trang_thai,
-                    checked: true,
-                    status: {
-                        type: "unchecked",
-                        value: []
-                    },
-                }
-            })
-
-            return (filter.is_12)
-                ? result.filter(item => item.treatment_type <= 2)
-                : result;
-        }
-        else {
-            return [];
-        }
-    }
-}
+/* Check last declare report
+* @param {string} patientID
+* @return {array} error 
+*/
 
 async function checkDeclare(patientID) {
-    const path = "/khaibao_theodoi";
-    const response = await fetchData(path, "declare", { patientID }, { results_per_page: 1 });
+    const response =
+        await fetchData(
+            END_POINT.GET_DECLARE,
+            { patientID },
+            "declare",
+            { results_per_page: 1 });
+
     if (response.ok) {
         const { created_at } = response.data.objects[0];
         return checkDate(created_at) ? [] : ["Sai ngày khai báo"];
@@ -208,9 +170,19 @@ async function checkDeclare(patientID) {
     }
 }
 
+/* Check last checkup report
+* @param {string} patientID
+* @return {array} error
+*/
+
 async function checkUpReport(patientID) {
-    const path = "/thongtin_khambenh";
-    const response = await fetchData(path, "checkup", { patientID }, { results_per_page: 1 });
+    const response =
+        await fetchData(
+            END_POINT.GET_CHECK_UP,
+            { patientID },
+            "checkup",
+            { results_per_page: 1 });
+
     if (response.ok) {
         const { created_at, loidan_bacsi, loai_xu_ly } = response.data.objects[0];
         let errors = [];
@@ -223,15 +195,18 @@ async function checkUpReport(patientID) {
     }
 }
 
-async function postDeclare(patientID, options) {
-    const path = "/khaibao_theodoi/khaiho";
-    const declareReport = declare_template;
+/* Post declare report
+* @param {string} patientID
+* @return {array} error
+*/
+
+async function postDeclare(patientID) {
+    const declareReport = DECLARE_TEMPLATE;
     declareReport.nguoidan_id = patientID;
 
     const response = await postData(
-        path,
-        declareReport,
-        { 'X-USER-TOKEN': localStorage.getItem('user-token') }
+        END_POINT.POST_DECLARE,
+        declareReport
     );
 
     if (response.ok) {
@@ -241,21 +216,28 @@ async function postDeclare(patientID, options) {
     }
 }
 
-async function postCheckUp(patientID, option) {
-    const path = "/khamchuabenh/create";
-    const checkUpReport = check_up_template;
+/* Post checkup report
+* @param {string} patientID
+* @return {array} error
+*/
+
+async function postCheckUp(patientID) {
+    const checkUpReport = CHECKUP_TEMPLATE;
+    const { treatment_type, health_status, diagnosis, advice } =
+        await Storage.getConfig();
+
     checkUpReport.nguoidan_id = patientID;
-    checkUpReport.loai_xu_ly = localStorage.getItem('treatment-type') || "";
-    checkUpReport.tinh_trang = localStorage.getItem('health-status') || "";
-    checkUpReport.chan_doan = localStorage.getItem('diagnosis') || "";
-    checkUpReport.loidan_bacsi = localStorage.getItem('advice') || "";
+    checkUpReport.loai_xu_ly = treatment_type;
+    checkUpReport.tinh_trang = health_status;
+    checkUpReport.chan_doan = diagnosis;
+    checkUpReport.loidan_bacsi = advice;
     checkUpReport.ngay_kham = genDateString();
 
     const response = await postData(
-        path,
-        checkUpReport,
-        { 'X-USER-TOKEN': localStorage.getItem('user-token') || '' }
+        END_POINT.POST_CHECKUP,
+        checkUpReport
     );
+
     if (response.ok) {
         return [];
     } else {
@@ -263,19 +245,29 @@ async function postCheckUp(patientID, option) {
     }
 }
 
-async function removeDeclare(patientID) { }
+// Unknown
+async function removeDeclare(patientID) {
+    return [];
+}
+
+/* Remove last checkup report
+* @param {string} patientID
+* @return {array} error
+*/
+
 async function removeCheckUp(patientID) {
-    const GetCheckupPath = "/thongtin_khambenh";
-    const DeleteCheckupPath = "/khamchuabenh/delete";
-    const responseCheckUp = await fetchData(GetCheckupPath, "checkup", { patientID }, { results_per_page: 1 });
-    if (responseCheckUp.ok) {
-        const CheckupID = await responseCheckUp.data.objects[0].id;
+    const lastCheckupReport =
+        await fetchData(
+            END_POINT.GET_CHECKUP,
+            { patientID },
+            "checkup",
+            { results_per_page: 1 });
+
+    if (lastCheckupReport.ok) {
+        const CheckupID = await lastCheckupReport.data.objects[0].id;
         const responseDelete = await postData(
-            DeleteCheckupPath,
-            {
-                id: CheckupID
-            },
-            { 'X-USER-TOKEN': localStorage.getItem('user-token') || '' }
+            END_POINT.DELETE_CHECKUP,
+            { id: CheckupID },
         );
 
         if (responseDelete.ok) {
@@ -285,11 +277,110 @@ async function removeCheckUp(patientID) {
         }
     }
     else {
-        return [responseCheckUp.error_message];
+        return [lastCheckupReport.error_message];
     }
 }
 
-async function checkPatient(patientID) {
+/* Login account
+* @param {string} username
+* @param {string} password
+* @return {object} data
+*/
+
+async function login(username, password) {
+    const data = {
+        data: username,
+        password: password
+    }
+
+    const response = await postData(END_POINT.POST_LOGIN, data, true);
+    if (response.ok) {
+        const { fullname, token, donvi, donvi_id } = response.data;
+        const { ten, xaphuong_id, diachi } = donvi;
+        const user = {
+            name: fullname,
+            token: token,
+        };
+        const medical_station = {
+            name: ten,
+            address: diachi,
+            wardsID: xaphuong_id,
+            stationID: donvi_id
+        }
+        await Storage.setAccountInfo({ username, token, user, medical_station });
+        return {
+            ok: true,
+            data: { username, token, user, medical_station }
+        };
+    }
+    else {
+        return {
+            ok: false,
+            error_message: response.error_message
+        }
+    }
+}
+
+/* get patient by filter
+* @param {object} filterObject
+* @return {array} data
+*/
+async function filter(filterObject) {
+    const { from, to, ...restFilter } = filterObject;
+    let result = [];
+
+    if (from || to) {
+        if (from.trim() !== "" || to.trim() !== "") {
+            if (
+                Number.isInteger(Number(from)) &&
+                Number.isInteger(Number(to))) {
+
+                const start = Number(from);
+                const end = Number(to);
+                for (let i = start; i <= end; i++) {
+                    restFilter.treatment_day = i.toString();
+                    result.push(...await filter(restFilter));
+                }
+            }
+        }
+    }
+    else {
+        const response = await fetchData(END_POINT.GET_FILTER, filterObject);
+        if (response.ok) {
+            const data = [...response.data.objects];
+            for (let i = 1; i < response.data.total_pages; i++) {
+                const response = await fetchData(END_POINT.GET_FILTER, filterObject, undefined, { page: i + 1 });
+                if (response.ok) {
+                    data.push(...response.data.objects);
+                }
+            }
+            result = data.map(item => {
+                return {
+                    id: item.id,
+                    name: item.ho_ten,
+                    phone: item.so_dien_thoai,
+                    treatment_type: item.trang_thai,
+                    checked: true,
+                    status: {
+                        type: "unchecked",
+                        value: []
+                    },
+                }
+            });
+        }
+    }
+
+    return (filter.is_12)
+        ? result.filter(item => item.treatment_type <= 2)
+        : result;
+}
+
+/* Checkup patient report
+* @param {string} patientID
+* @return {array} error
+*/
+
+async function check(patientID) {
     const result = [
         ...await checkDeclare(patientID),
         ...await checkUpReport(patientID)
@@ -299,19 +390,25 @@ async function checkPatient(patientID) {
         : { type: "error", value: result };
 }
 
-async function run(patientID, mode, time) {
+/* Post patient report to server
+* @param {string} patientID
+* @param {string} mode
+* @return {array} error
+*/
+
+async function run(patientID, mode) {
     let result = [];
     switch (mode) {
         case "1":
-            result = [...await postDeclare(patientID, { time: time })];
+            result = [...await postDeclare(patientID)];
             break;
         case "2":
-            result = [...await postCheckUp(patientID, { time: time })];
+            result = [...await postCheckUp(patientID)];
             break;
         case "3":
             result = [
-                ...await postDeclare(patientID, { time: time }),
-                ...await postCheckUp(patientID, { time: time })
+                ...await postDeclare(patientID),
+                ...await postCheckUp(patientID)
             ];
             break;
         default:
@@ -323,6 +420,12 @@ async function run(patientID, mode, time) {
         ? { type: "done", value: [] }
         : { type: "error", value: result };
 }
+
+/* Remove patient report from server
+* @param {string} patientID
+* @param {string} mode
+* @return {array} error
+*/
 
 async function remove(patientID, mode) {
     let result = [];
@@ -349,61 +452,10 @@ async function remove(patientID, mode) {
         : { type: "error", value: result };
 }
 
-function checkMatch(value, type) {
-    if (type === "advice") {
-        return value === (localStorage.getItem('advice') || "");
-    }
-    else if (type === "treatment-type") {
-        return value === (Number(localStorage.getItem('treatment-type')) || 0);
-    }
-}
-
-
-function checkDate(time) {
-    const now = new Date(Date.now());
-    const test = new Date(time * 1000);
-    return now.getDay() === test.getDay() && (now.getTime() - test.getTime()) <= 86400 * 1000;
-}
-
-function genKey() {
-    return Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
-}
-
-function removeAccents(str) {
-    return str.normalize('NFD')
-        .replace(/[\u0300-\u036f]/g, '')
-        .replace(/đ/g, 'd').replace(/Đ/g, 'D')
-        .toLowerCase();
-}
-
-async function delay(millisecond) {
-    return new Promise((resolve, reject) => {
-        setTimeout(() => { resolve() }, millisecond);
-    });
-}
-
-/*eslint no-extend-native: ["error", { "exceptions": ["Number"] }]*/
-Number.prototype.addLeadingZeroes = function () {
-    const n = Math.abs(this);
-    return n < 10 ? '0' + n : n.toString();
-}
-
-function genDateString() {
-    const date = new Date();
-    const year = date.getFullYear().addLeadingZeroes();
-    const month = (date.getMonth() + 1).addLeadingZeroes();
-    const day = date.getDate().addLeadingZeroes();
-    const hour = date.getHours().addLeadingZeroes();
-    const minute = date.getMinutes().addLeadingZeroes();
-    return `${year}${month}${day}${hour}${minute}`;
-}
-
 const Core = {
-    loginAction,
-    getFilter,
-    checkPatient,
-    genKey,
-    delay,
+    check,
+    filter,
+    login,
     remove,
     run
 }

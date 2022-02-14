@@ -4,7 +4,7 @@
 * Return All notificationIDs
 */
 
-async function getAllNotificationIDs() {
+async function getIDs() {
     return new Promise((resolve, reject) => {
         chrome.notifications.getAll(notifications => {
             resolve(Object.keys(notifications));
@@ -18,7 +18,7 @@ async function getAllNotificationIDs() {
 * return: Promise<string> of status message
 */
 
-async function clearNotifications(notification_id) {
+async function clear(notification_id) {
     return new Promise(async (resolve, reject) => {
         // Clear special notification
         if (notification_id) {
@@ -34,7 +34,7 @@ async function clearNotifications(notification_id) {
                 try {
                     resolve(await Promise.all(
                         notification_id.map(
-                            element => clearNotifications(element))
+                            element => clear(element))
                     ));
                 } catch (error) {
                     reject(error);
@@ -44,10 +44,10 @@ async function clearNotifications(notification_id) {
             }
             // Clear all notifications
         } else {
-            getAllNotificationIDs()
+            getIDs()
                 .then(async (notificationIds) => {
                     try {
-                        resolve(await clearNotifications(notificationIds));
+                        resolve(await clear(notificationIds));
                     } catch (error) {
                         reject(error);
                     }
@@ -63,10 +63,12 @@ async function clearNotifications(notification_id) {
 *  buttons: object | null
 *  return: Promise<string> of notificationId
 */
-async function createBasicNotification(
+
+async function create({
     title = "Auto Fill",
     message = "Happy day!",
-    id, buttons) {
+    id, buttons
+}) {
     return new Promise((resolve, reject) => {
         chrome.notifications.create(id, {
             type: "basic",
@@ -81,9 +83,9 @@ async function createBasicNotification(
 }
 
 const Notification = {
-    createBasicNotification,
-    clearNotifications,
-    getAllNotificationIDs
+    create,
+    clear,
+    getIDs
 }
 
 export default Notification;

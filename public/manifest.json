@@ -41,7 +41,7 @@
                 "inject.css"
             ],
             "js": [
-                "content-script.js"
+                "inject.js"
             ]
         }
     ],

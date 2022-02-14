@@ -20,13 +20,15 @@ chrome.runtime.onMessage.addListener(
     function (request, sender, sendResponse) {
         switch (request.command) {
             case "get_token":
-                const { message, token } = getToken();
-                sendResponse({
-                    success: (message === "success") ? true : false,
-                    token: token,
-                    message: message
-                });
-                break;
+                {
+                    const { message, token } = getToken();
+                    sendResponse({
+                        success: (message === "success") ? true : false,
+                        token: token,
+                        message: message
+                    });
+                    break;
+                }
         }
     }
 );
