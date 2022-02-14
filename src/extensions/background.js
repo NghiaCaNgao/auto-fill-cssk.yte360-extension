@@ -1,64 +1,14 @@
 /*global chrome*/
+import Storage from "../utils/storage";
+import Notification from "../utils/notification";
 
-import Storage from "../utils/storage.js";
+const IndexPath = chrome.runtime.getURL("index.html");
+const HomePagePath = "https://github.com/NghiaCaNgao/auto-fill-cssk.yte360-extension";
 
-// Return All notificationIDs
-async function getAllNotificationIDs() {
-    return new Promise((resolve, reject) => {
-        chrome.notifications.getAll(notifications => {
-            resolve(Object.keys(notifications));
-        });
-    });
-}
-
-// notification_id: string | string[] | undefined
-async function clearNotifications(notification_id) {
-    return new Promise(async (resolve, reject) => {
-        if (notification_id) {
-            if (typeof (notification_id) == 'string') {
-                chrome.notifications.clear(notification_id, (wasCleared) => {
-                    wasCleared
-                        ? resolve('Cleared ' + notification_id)
-                        : reject("Can't not clear notification " + notification_id);
-                });
-            } else if (Array.isArray(notification_id)) {
-                try {
-                    resolve(await Promise.all(
-                        notification_id.map(
-                            element => clearNotifications(element))
-                    ));
-                } catch (error) {
-                    reject(error);
-                }
-            } else {
-                reject('Notification_id must be string or array');
-            }
-        } else {
-            getAllNotificationIDs()
-                .then(async (notificationIds) => {
-                    try {
-                        resolve(await clearNotifications(notificationIds));
-                    } catch (error) {
-                        reject(error);
-                    }
-                });
-        }
-    });
-}
-
-//  title: string
-//  message: string
-//  id: string | null
-async function createBasicNotification(title = "Auto Fill", message = "Happy day!", id) {
-    return new Promise((resolve, reject) => {
-        chrome.notifications.create(id, {
-            type: 'basic',
-            iconUrl: 'assets/logo/logo_48.png',
-            title: title,
-            message: message
-        }, function (notificationId) {
-            resolve(notificationId);
-        });
+function createTab(url) {
+    chrome.tabs.create({
+        active: true,
+        url: url
     });
 }
 
@@ -105,41 +55,60 @@ function saveToken() {
                 });
         });
 }
+
 // onInstalled
 chrome.runtime.onInstalled.addListener(async details => {
+    // Clear all notification
     try {
         console.log(await clearNotifications());
     } catch (error) {
         console.log(error);
     }
 
+    // Create new welcome notification
     if (details.reason === chrome.runtime.OnInstalledReason.INSTALL) {
+        // Create new welcome notification for first time
         await Storage.createDefaultData();
-        await createBasicNotification("Auto Fill", "Welcome to Auto FIll", "ok_welcome");
+        await Notification.createBasicNotification("Auto Fill", "Welcome to Auto FIll", "af_install");
     }
     else if (details.reason === chrome.runtime.OnInstalledReason.UPDATE) {
-        await createBasicNotification("Auto Fill", "Update successfully", "ok_update");
+        await Notification.createBasicNotification(
+            title = "Auto Fill",
+            message = "Update successfully",
+            id = "af_update",
+            buttons = [{
+                title: "View changelog",
+            }]);
     }
 });
 
+// On click notification
+chrome.notifications.onButtonClicked.addListener(
+    (notificationId, buttonIndex) => {
+        if (notificationId === "ok_update" && buttonIndex === 0) {
+            createTab(HomePagePath);
+        }
+    });
+
+// On icon click
 chrome.action.onClicked.addListener(() => {
-    chrome.tabs.create({
-        active: true,
-        url: chrome.runtime.getURL('index.html')
-    })
+    createTab(IndexPath);
 });
 
+// On press Alt + L
 chrome.commands.onCommand.addListener((command) => {
     if (command === "open_app") {
         chrome.tabs.create({
             active: true,
-            url: chrome.runtime.getURL('index.html')
+            url: IndexPath
         })
     }
 });
 
+// Create context menu
 chrome.contextMenus.removeAll();
-createContextMenu("auto_check", "Tự động kiểm tra", true);
+const auto_check_status = await Storage.getDataFromChromeStorage("auto_check");
+createContextMenu("auto_check", "Tự động kiểm tra", auto_check_status);
 createContextMenu("save_token", "Lưu token");
 
 chrome.contextMenus.onClicked.addListener(async (info, tab) => {

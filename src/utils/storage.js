@@ -1,5 +1,9 @@
 /*global chrome*/
 
+/* Get data from chrome storage
+* @param {Array of String} key
+* @return {Promise} of Object
+*/
 async function getDataFromChromeStorage(keys) {
     return new Promise((resolve, reject) => {
         if (keys.length > 0 && Array.isArray(keys)) {
@@ -14,6 +18,11 @@ async function getDataFromChromeStorage(keys) {
     });
 }
 
+/* Set data to chrome storage
+* @param {Object} data
+* @return {Promise} of undefined
+*/
+
 async function setDataToChromeStorage(data) {
     return new Promise((resolve, reject) => {
         chrome.storage.sync.set(data, () => {
@@ -21,6 +30,10 @@ async function setDataToChromeStorage(data) {
         });
     });
 }
+
+/* Clear all data in chrome storage
+* @return {Promise} of undefined
+*/
 
 async function clearChromeStorage() {
     return new Promise((resolve, reject) => {
@@ -30,9 +43,14 @@ async function clearChromeStorage() {
     });
 }
 
+/* reset data to default
+* @return {Promise} of undefined
+*/
+
 async function createDefaultData() {
     await setDataToChromeStorage({
         username: "",
+        auto_check: false,
         user: {
             name: "",
             token: ""

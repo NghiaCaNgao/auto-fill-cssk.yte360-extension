@@ -130,7 +130,7 @@ export default class Check extends react.Component {
                     });
                     await Storage.clearChromeStorage();
 
-                    swal("Ok! Dữ liệu đã xóa", {
+                    swal("Ok! Đã đăng xuất", {
                         icon: "success",
                     });
                 } else {
