@@ -54,7 +54,7 @@ function createQuery(filter, order_by, direction) {
             if (alias[key] && filter[key].trim() !== "") {
                 let obj = {};
                 obj[alias[key]] = {
-                    "$eq": removeAccents(filter[key]).trim()
+                    "$eq": Utils.removeAccents(filter[key]).trim()
                 };
                 filterRequest.push(obj);
             }
@@ -163,7 +163,7 @@ async function checkDeclare(patientID) {
 
     if (response.ok) {
         const { created_at } = response.data.objects[0];
-        return checkDate(created_at) ? [] : ["Sai ngày khai báo"];
+        return Utils.checkDate(created_at) ? [] : ["Sai ngày khai báo"];
     }
     else {
         return [response.error_message];
@@ -186,9 +186,9 @@ async function checkUpReport(patientID) {
     if (response.ok) {
         const { created_at, loidan_bacsi, loai_xu_ly } = response.data.objects[0];
         let errors = [];
-        if (!checkDate(created_at)) errors.push("Sai ngày khám");
-        if (!checkMatch(loidan_bacsi, "advice")) errors.push("Sai lời khuyên");
-        if (!checkMatch(loai_xu_ly, "treatment-type")) errors.push("Sai loại xử lý");
+        if (!Utils.checkDate(created_at)) errors.push("Sai ngày khám");
+        if (!Utils.checkMatch(loidan_bacsi, "advice")) errors.push("Sai lời khuyên");
+        if (!Utils.checkMatch(loai_xu_ly, "treatment-type")) errors.push("Sai loại xử lý");
         return errors;
     } else {
         return [response.error_message];
@@ -231,7 +231,7 @@ async function postCheckUp(patientID) {
     checkUpReport.tinh_trang = health_status;
     checkUpReport.chan_doan = diagnosis;
     checkUpReport.loidan_bacsi = advice;
-    checkUpReport.ngay_kham = genDateString();
+    checkUpReport.ngay_kham = Utils.genDateString();
 
     const response = await postData(
         END_POINT.POST_CHECKUP,
