@@ -1,6 +1,6 @@
 import React from "react";
 import swal from "sweetalert";
-import Core from "../../core"
+import Core from "../../utils/core";
 
 const DELAY = 500;
 const DELAY_POST = 10000;
@@ -10,6 +10,8 @@ export default class Run extends React.Component {
         super(props);
         this.state = {
             isRunning: false,
+            isShiftPressing: false,
+            lastCheckedItemIndex: 0,
             isCheckedAll: true,
             delay: DELAY,
             delayPost: DELAY_POST,
@@ -41,6 +43,22 @@ export default class Run extends React.Component {
             delay: Number(localStorage.getItem('delay-request')) || 500,
             delayPost: Number(localStorage.getItem('delay-post')) || 10000,
             runMode: localStorage.getItem('run-mode') || "1",
+        });
+
+        window.addEventListener('keydown', (e) => {
+            if (e.keyCode === 16) {
+                this.setState({
+                    isShiftPressing: true
+                });
+            }
+        });
+
+        window.addEventListener('keyup', (e) => {
+            if (e.keyCode === 16) {
+                this.setState({
+                    isShiftPressing: false
+                });
+            }
         });
     }
 
@@ -160,16 +178,27 @@ export default class Run extends React.Component {
         }
         this.setState({
             isCheckedAll,
-            patientList
+            patientList,
+            lastCheckedItemIndex: 0
         });
     }
 
     handleCheckItem(index) {
         const patientList = this.state.patientList;
-        patientList[index].checked = !patientList[index].checked;
+        if (this.state.isShiftPressing) {
+            const start = Math.min(this.state.lastCheckedItemIndex, index);
+            const end = Math.max(this.state.lastCheckedItemIndex, index);
+            const state = !patientList[index].checked;
+            for (let i = start; i <= end; i++) {
+                patientList[i].checked = state;
+            }
+        } else {
+            patientList[index].checked = !patientList[index].checked;
+        }
         this.setState({
             patientList,
-            isCheckedAll: false
+            isCheckedAll: false,
+            lastCheckedItemIndex: index
         });
     }
 

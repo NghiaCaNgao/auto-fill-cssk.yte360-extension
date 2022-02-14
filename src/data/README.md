@@ -21,21 +21,15 @@ Autofill will help the medical staff speed up the work by auto-generating the re
 
 ### Update:
 
-- #### 1.0.1
+- #### 1.0.0
   - Redesign the navbar, increasing the workspace,...
   - Add the "remove the last checkup report " feature
-- #### 1.0.2
+- #### 1.0.1
   - Fix delay time for each request
   - Add delay time for each posting record times
-- #### 1.0.3
+- #### 1.0.2
   - Add info page
   - Add the feature "Press shift key to select a range of items"
-- #### 1.1.0
-  - Add context menu (Save token / Auto Check)
-  - Move data from window.localStorage to chrome.storage
-  - Press Alt + L to open workspace quickly
-  - Status check result right in  chamsocsuckhoe
-  - Generate record right in chamsocsuckhoe
 
 ### Author and contributor
 - Dev: **_Nghiacangao_**

@@ -1,6 +1,6 @@
 import axios from 'axios';
-import check_up_template from './data/check_up.json';
-import declare_template from './data/declare.json';
+import check_up_template from '../data/check_up.json';
+import declare_template from '../data/declare.json';
 
 async function loginAction(username, password) {
     try {

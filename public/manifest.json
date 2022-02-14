@@ -2,7 +2,15 @@
     "manifest_version": 3,
     "name": "Autofill CSSK",
     "short_name": "AF CSSK",
-    "version": "1.0.1",
+    "version": "1.0.4",
+    "author": "NghiaCaNgao",
+    "description": "Autofill CSSK. Make your work better.",
+    "homepage_url": "https://github.com/NghiaCaNgao/auto-fill-cssk.yte360-extension",
+    "icons": {
+        "16": "assets/logo/logo_16.png",
+        "48": "assets/logo/logo_48.png",
+        "128": "assets/logo/logo_128.png"
+    },
     "action": {
         "default_icon": {
             "16": "assets/logo/logo_16.png",
@@ -11,19 +19,35 @@
         },
         "default_title": "Manage your work"
     },
-    "description": "Autofill CSSK. Make your work better.",
-    "icons": {
-        "16": "assets/logo/logo_16.png",
-        "48": "assets/logo/logo_48.png",
-        "128": "assets/logo/logo_128.png"
+    "commands": {
+        "open_app": {
+            "suggested_key": {
+                "default": "Alt+L",
+                "mac": "Alt+L"
+            },
+            "description": "Open the app"
+        }
     },
-    "author": "NghiaCaNgao",
     "background": {
         "service_worker": "background.js",
         "type": "module"
     },
-    "homepage_url": "https://path/to/homepage",
+    "content_scripts": [
+        {
+            "matches": [
+                "https://chamsocsuckhoe.yte360.com/"
+            ],
+            "css": [
+                "inject.css"
+            ],
+            "js": [
+                "content-script.js"
+            ]
+        }
+    ],
     "permissions": [
-        "notifications"
+        "notifications",
+        "contextMenus",
+        "storage"
     ]
 }

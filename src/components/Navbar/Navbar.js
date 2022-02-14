@@ -4,6 +4,7 @@ import "./NavIcon.scss";
 import { ReactComponent as ConfigIcon } from "../../assets/icons/chartvertical.svg";
 import { ReactComponent as AccountIcon } from "../../assets/icons/user1.svg";
 import { ReactComponent as RunIcon } from "../../assets/icons/play.svg";
+import { ReactComponent as InfoIcon } from "../../assets/icons/infocircle.svg";
 import React from 'react';
 import { NavLink } from "react-router-dom";
 
@@ -35,13 +36,24 @@ export default class Navbar extends React.Component {
                         </div>
                     </div>
                     <div className="af-group-link">
-                        <h4>Work</h4>
+                        <h4>Run</h4>
                         <div>
                             <NavLink
                                 to="/"
                                 activeclassname="active"
                                 className="d-flex align-items-center justify-content-center navbar__icon">
                                 <RunIcon />
+                            </NavLink >
+                        </div>
+                    </div>
+                    <div className="af-group-link">
+                        <h4>Info</h4>
+                        <div>
+                            <NavLink
+                                to="/info"
+                                activeclassname="active"
+                                className="d-flex align-items-center justify-content-center navbar__icon">
+                                <InfoIcon />
                             </NavLink >
                         </div>
                     </div>

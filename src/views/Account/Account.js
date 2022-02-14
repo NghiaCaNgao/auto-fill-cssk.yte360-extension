@@ -1,5 +1,6 @@
 import "./Account.scss";
-import core from "../../core";
+import Core from "../../utils/core";
+import Storage from "../../utils/storage";
 import react from 'react';
 import swal from 'sweetalert';
 
@@ -12,10 +13,7 @@ export default class Check extends react.Component {
             password: "",
             user: {
                 name: "",
-                phone: "",
-                email: "",
-                token: "",
-                roles: []
+                token: ""
             },
             medical_station: {
                 name: "",
@@ -24,59 +22,48 @@ export default class Check extends react.Component {
                 stationID: ""
             }
         };
-        this.contactSubmit = this.contactSubmit.bind(this);
+        this.accountSubmit = this.accountSubmit.bind(this);
     }
 
-    componentDidMount() {
+    async componentDidMount() {
+        const { username, user, medical_station, token } =
+            await Storage.getDataFromChromeStorage(["username", "user", "medical_station", "token"]);
+
         this.setState({
-            username: localStorage.getItem("username") || "",
+            username: username || "",
             password: "password",
             user: {
-                name: localStorage.getItem("user-full-name") || "",
-                phone: localStorage.getItem("user-phone") || "",
-                email: localStorage.getItem("user-email") || "",
-                token: localStorage.getItem("user-token") || "",
-                roles: localStorage.getItem("user-roles") || []
+                name: user.name || "",
+                token: token || "",
             },
             medical_station: {
-                name: localStorage.getItem("station-name") || "",
-                address: localStorage.getItem("station-address") || "",
-                wardsID: localStorage.getItem("ward-id") || "",
-                stationID: localStorage.getItem("station-id") || ""
+                name: medical_station.name || "",
+                address: medical_station.address || "",
+                wardsID: medical_station.wardsID || "",
+                stationID: medical_station.stationID || ""
             },
-
         });
     }
 
-    saveData(data) {
-        for (let key in data) {
-            localStorage.setItem(key, data[key]);
-        }
-    }
-
-    async contactSubmit(e) {
+    async accountSubmit(e) {
+        // Show loading
         e.preventDefault();
         this.setState({
             isSending: true
         });
 
-        const data = await core.loginAction(this.state.username, this.state.password);
-        console.log(data);
-
+        // Login and handle response data
+        const data = await Core.loginAction(this.state.username, this.state.password);
         if (data.ok) {
             swal("Thành công", "Đã đăng nhập thành công", "success");
-            document.querySelector("#username").setCustomValidity(null);
-            document.querySelector("#password").setCustomValidity(null);
-            const { fullname, phone, token, roles, email, donvi, donvi_id } = data.data;
+            const { fullname, token, donvi, donvi_id } = data.data;
             const { ten, xaphuong_id, diachi } = donvi;
 
+            // Save data to state and chrome storage
             this.setState({
                 user: {
                     name: fullname,
-                    phone: phone,
-                    email: email,
                     token: token,
-                    roles: roles
                 },
                 medical_station: {
                     name: ten,
@@ -86,52 +73,53 @@ export default class Check extends react.Component {
                 }
             });
 
-            this.saveData({
+            await Storage.setDataToChromeStorage({
                 username: this.state.username,
-                "user-full-name": this.state.user.name,
-                "user-phone": this.state.user.phone,
-                "user-email": this.state.user.email,
-                "user-token": this.state.user.token,
-                "user-roles": this.state.user.roles,
-                "station-name": this.state.medical_station.name,
-                "station-address": this.state.medical_station.address,
-                "ward-id": this.state.medical_station.wardsID,
-                "station-id": this.state.medical_station.stationID
+                user: {
+                    name: this.state.user.name,
+                },
+                token: this.state.user.token,
+                medical_station: {
+                    name: this.state.medical_station.name,
+                    address: this.state.medical_station.address,
+                    wardsID: this.state.medical_station.wardsID,
+                    stationID: this.state.medical_station.stationID
+                }
             });
 
         } else {
+            // If fail, show error message
             swal("Error", data.error_message, "error");
             document.querySelector(".needs-validation").classList.add("was-validated");
             document.querySelector("#username").setCustomValidity("error");
             document.querySelector("#password").setCustomValidity("error");
         }
 
+        // Hide loading
         this.setState({
             isSending: false
         });
-
         return data.ok;
     }
 
-    contactClear() {
+    logout() {
+        // Confirm logout
         swal({
             title: "Bạn có chắc?",
-            text: "Khi bạn xóa, dữ liệu của bạn sẽ không thể khôi phục lại được!",
+            text: "Khi bạn đăng xuất, token và các thông tin tài khoản của bạn sẽ mất!",
             icon: "warning",
             buttons: true,
             dangerMode: true,
         })
-            .then((willDelete) => {
+            .then(async (willDelete) => {
                 if (willDelete) {
+                    // Reset data to default
                     this.setState({
                         username: "",
                         password: "",
                         user: {
                             name: "",
-                            phone: "",
-                            email: "",
                             token: "",
-                            roles: []
                         },
                         medical_station: {
                             name: "",
@@ -140,8 +128,8 @@ export default class Check extends react.Component {
                             stationID: ""
                         }
                     });
+                    await Storage.clearChromeStorage();
 
-                    localStorage.clear();
                     swal("Ok! Dữ liệu đã xóa", {
                         icon: "success",
                     });
@@ -189,7 +177,7 @@ export default class Check extends react.Component {
                                         disabled={this.state.isSending}
                                         required />
                                     <div className="invalid-feedback">
-                                        oop! username or password is incorrect.
+                                        oop! Tài khoản hoặc mật khẩu không đúng.
                                     </div>
                                 </div>
                                 <div className="form-group">
@@ -204,18 +192,20 @@ export default class Check extends react.Component {
                                         disabled={this.state.isSending}
                                         required />
                                     <div className="invalid-feedback">
-                                        oop! username or password is incorrect.
+                                        oop! Tài khoản hoặc mật khẩu không đúng.
                                     </div>
                                 </div>
                                 <div className="d-flex justify-content-end mt-5">
-                                    <button className="btn btn-danger me-3" onClick={this.contactClear.bind(this)}>
-                                        Xóa dữ liệu
+                                    <button
+                                        className="btn btn-danger me-3"
+                                        onClick={this.logout.bind(this)}>
+                                        Đăng xuất
                                     </button>
 
                                     <button
                                         className="btn btn-primary"
                                         disabled={this.state.isSending}
-                                        onClick={this.contactSubmit.bind(this)}>
+                                        onClick={this.accountSubmit.bind(this)}>
                                         {this.state.isSending
                                             ? (
                                                 <div>
@@ -240,27 +230,7 @@ export default class Check extends react.Component {
                                         onChange={this.handleChange.bind(this, "user", "name")}
                                         disabled />
                                 </div>
-                                <div className="form-group">
-                                    <label htmlFor="user-email">Email</label>
-                                    <input
-                                        type="text"
-                                        className="form-control"
-                                        id="user-email"
-                                        placeholder="nvs@gmail.com"
-                                        value={this.state.user.email}
-                                        disabled />
-                                </div>
-                                <div className="form-group">
-                                    <label htmlFor="user-phone">Số ddienj thoại</label>
-                                    <input
-                                        type="text"
-                                        className="form-control"
-                                        id="user-phone"
-                                        placeholder="0123456789"
-                                        value={this.state.user.phone}
-                                        onChange={this.handleChange.bind(this, "user", "phone")}
-                                        disabled />
-                                </div>
+
                                 <div className="form-group">
                                     <label htmlFor="organization-name">Tên trạm</label>
                                     <input

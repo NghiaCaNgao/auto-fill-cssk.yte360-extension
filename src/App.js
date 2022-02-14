@@ -2,6 +2,7 @@ import Navbar from "./components/Navbar/Navbar";
 import Run from "./views/Run/Run";
 import Account from "./views/Account/Account";
 import Configs from "./views/Configs/Configs";
+import Info from "./views/Info/Info";
 
 import { HashRouter as Router, Routes, Route } from 'react-router-dom';
 
@@ -15,6 +16,7 @@ function App() {
             <Route path="/" element={<Run />} />
             <Route path="/account" element={<Account />} />
             <Route path="/configs" element={<Configs />} />
+            <Route path="/info" element={<Info />} />
           </Routes>
         </div>
       </div>
