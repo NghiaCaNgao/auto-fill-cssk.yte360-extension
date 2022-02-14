@@ -1,0 +1,2 @@
+(self.webpackChunkauto_fill=self.webpackChunkauto_fill||[]).push([[655],{1610:function(){chrome.runtime.onMessage.addListener((function(e,s,n){if("get_token"===e.command){var t=function(){var e=window.localStorage.getItem("X-USER-TOKEN");return e&&""!==e.trim()?{token:e.slice(1,-1),message:"success"}:{token:"",message:"Can't get token"}}(),o=t.message;n({success:"success"===o,token:t.token,message:o})}}))}},function(e){var s;s=1610,e(e.s=s)}]);
+//# sourceMappingURL=inject.js.map

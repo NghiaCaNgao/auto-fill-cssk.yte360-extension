@@ -2,16 +2,13 @@
 
 # dependencies
 /node_modules/*
-!node_modules/react-scripts/config
+!/node_modules/react-scripts
 
 /.pnp
 .pnp.js
 
 # testing
 /coverage
-
-# production
-/build
 
 # misc
 .DS_Store

@@ -1,0 +1,24 @@
+{
+  "files": {
+    "shared.js": "/static/js/shared.a308bd82.js",
+    "main.css": "/static/css/main.a3afb900.css",
+    "main.js": "/static/js/main.311f6c15.js",
+    "background.js": "/background.js",
+    "inject.js": "/inject.js",
+    "static/media/README.md": "/static/media/README.c48c35bcebaabaa7abc1.md",
+    "index.html": "/index.html",
+    "static/media/infocircle.svg": "/static/media/infocircle.761708d580d528dad448097bc4f4c6b0.svg",
+    "static/media/chartvertical.svg": "/static/media/chartvertical.0b23424a5e82ad4084cb739eb0f2f999.svg",
+    "static/media/user1.svg": "/static/media/user1.3691f56a8f6688eff1da6dfd79ad2037.svg",
+    "static/media/play.svg": "/static/media/play.b9efad2fc96933d8343e2c209793cff4.svg",
+    "shared.a308bd82.js.map": "/static/js/shared.a308bd82.js.map",
+    "main.a3afb900.css.map": "/static/css/main.a3afb900.css.map",
+    "main.311f6c15.js.map": "/static/js/main.311f6c15.js.map",
+    "background.js.map": "/background.js.map",
+    "inject.js.map": "/inject.js.map"
+  },
+  "entrypoints": [
+    "static/css/main.a3afb900.css",
+    "static/js/main.311f6c15.js"
+  ]
+}
