@@ -12,6 +12,16 @@ async function getIDs() {
     });
 }
 
+/* Check if notification exists 
+* @param {string} notification_id
+* @return {boolean}
+*/
+
+async function hasID(notification_id) {
+    const IDSet = new Set(await getIDs());
+    return IDSet.has(notification_id);
+}
+
 /*
 * Clear notifications
 * notification_id: string | string[] | undefined
@@ -27,7 +37,7 @@ async function clear(notification_id) {
                 chrome.notifications.clear(notification_id, (wasCleared) => {
                     wasCleared
                         ? resolve('Cleared ' + notification_id)
-                        : reject("Can't not clear notification " + notification_id);
+                        : reject("Cannot clear notification " + notification_id);
                 });
                 // Clear array of notifications
             } else if (Array.isArray(notification_id)) {
@@ -69,22 +79,29 @@ async function create({
     message = "Happy day!",
     id, buttons
 }) {
-    return new Promise((resolve, reject) => {
-        chrome.notifications.create(id, {
-            type: "basic",
-            iconUrl: 'assets/logo/logo_48.png',
-            title: title,
-            message: message,
-            buttons: buttons
-        }, function (notificationId) {
-            resolve(notificationId);
-        });
+    return new Promise(async (resolve, reject) => {
+        try {
+            if (await hasID(id)) await clear(id);
+
+            chrome.notifications.create(id, {
+                type: "basic",
+                iconUrl: 'assets/logo/logo_48.png',
+                title: title,
+                message: message,
+                buttons: buttons
+            }, function (notificationId) {
+                resolve(notificationId);
+            });
+        } catch (error) {
+            reject(error);
+        }
     });
 }
 
 const Notification = {
     create,
     clear,
+    hasID,
     getIDs
 }
 

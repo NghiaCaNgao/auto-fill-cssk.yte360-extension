@@ -30,12 +30,15 @@ Autofill will help the medical staff speed up the work by auto-generating the re
 - #### 1.0.2
   - Add info page
   - Add the feature "Press shift key to select a range of items"
-
+- #### 1.1.0
+  - Add context menu (Save token)
+  - Remove "login form" in account tab
+  - Move data from window.localStorage to chrome.storage
+  - Press Alt + L to open workspace quickly
 ### Author and contributor
 - Dev: **_Nghiacangao_**
 - Supporter/Tester: **_Pham Thi Khanh Huyen, Jonathan Bronstein_**
 ### Disclaimer
-
 - All your data are only used in our app and no three-side has that data. (Only in this app and chamsocsuckhoe.yte360.com)
 - All the requests and APIs belong to the CSSK app with host chamsocsuckhoe.yte360.com
 - Using this app is completely voluntary. That is, any wrong data in your account and other information if occur, we (or I) do not responsible for. But, if you encounter this case, please contact me.

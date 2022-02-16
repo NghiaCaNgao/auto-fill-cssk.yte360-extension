@@ -1,10 +1,8 @@
 import React from "react";
 import swal from "sweetalert";
 import Core from "../../utils/core";
-
-const DELAY = 500;
-const DELAY_POST = 10000;
-
+import Storage from "../../utils/storage";
+import Utils from "../../utils/utils";
 export default class Run extends React.Component {
     constructor(props) {
         super(props);
@@ -13,36 +11,45 @@ export default class Run extends React.Component {
             isShiftPressing: false,
             lastCheckedItemIndex: 0,
             isCheckedAll: true,
-            delay: DELAY,
-            delayPost: DELAY_POST,
-            runMode: "1",
-            filter: {
-                phone: "",
-                name: "",
-                treatment_day: "",
-                from: "",
-                to: "",
-                is_12: false,
-            },
             patientList: [],
+            filter: {
+                phone: Utils.DEFAULT.phone,
+                name: Utils.DEFAULT.name_filter,
+                treatment_day: Utils.DEFAULT.treatment_day,
+                from: Utils.DEFAULT.from,
+                to: Utils.DEFAULT.to,
+                is_12: Utils.DEFAULT.is_12,
+            },
+            configs: {
+                delay: Utils.DEFAULT.delay_request,
+                delayPost: Utils.DEFAULT.delay_post,
+                runMode: Utils.DEFAULT.run_mode,
+            },
         };
     }
 
     async componentDidMount() {
         let filter = localStorage.getItem('filter') || '{}';
+        const run_config = await Storage.getRunConfig();
+        const account = await Storage.getAccountInfo();
         filter = JSON.parse(filter);
+
         this.setState({
             filter: {
-                phone: filter.phone || "",
-                name: filter.name || "",
-                treatment_day: filter.treatment_day || "",
-                from: filter.from || "",
-                to: filter.to || "",
-                is_12: filter.is_12 || false,
+                phone: filter.phone || Utils.DEFAULT.phone,
+                name: filter.name || Utils.DEFAULT.name_filter,
+                treatment_day: filter.treatment_day || Utils.DEFAULT.treatment_day,
+                from: filter.from || Utils.DEFAULT.from,
+                to: filter.to || Utils.DEFAULT.to,
+                is_12: filter.is_12 || Utils.DEFAULT.is_12,
             },
-            delay: Number(localStorage.getItem('delay-request')) || 500,
-            delayPost: Number(localStorage.getItem('delay-post')) || 10000,
-            runMode: localStorage.getItem('run-mode') || "1",
+            configs: {
+                runMode: localStorage.getItem('run-mode') || Utils.DEFAULT.run_mode,
+                delay: run_config.delay_request,
+                delayPost: run_config.delay_post,
+                medicalStationID: account.medical_station.stationID,
+                wardID: account.medical_station.wardsID
+            },
         });
 
         window.addEventListener('keydown', (e) => {
@@ -62,76 +69,77 @@ export default class Run extends React.Component {
         });
     }
 
-    async handleFilter() {
+    async getFilterData(prev) {
         this.setState({
             isRunning: true
         });
+
         const filter = this.state.filter;
-        const data = await Core.getFilter(
+        const prevLength = prev.length;
+
+        let data = await Core.filter(
             {
                 ...filter,
-                medical_station: localStorage.getItem('station-id') || "",
-                ward_id: localStorage.getItem('ward-id') || ''
-            });
-
-        this.setState({
-            patientList: data.map((item, _index) => {
-                return {
-                    ...item,
-                    index: _index + 1,
-                }
-            }),
-            isRunning: false
-        });
-        localStorage.setItem('filter', JSON.stringify(filter));
-    }
-
-    async handleAdd() {
-        this.setState({
-            isRunning: true
-        });
-        const filter = this.state.filter;
-        const prevPatientList = this.state.patientList;
-        const prevPatientListLength = prevPatientList.length;
-        let data = await Core.getFilter(
-            {
-                ...filter,
-                medical_station: localStorage.getItem('station-id') || "",
-                ward_id: localStorage.getItem('ward-id') || ''
+                medical_station: this.state.configs.medicalStationID,
+                ward_id: this.state.configs.wardID
             });
 
         data = data.map((item, _index) => {
-            return { ...item, index: _index + prevPatientListLength + 1 };
+            return { ...item, index: _index + prevLength + 1 };
         })
 
         this.setState({
-            patientList: [...prevPatientList, ...data],
-            isRunning: false
+            patientList: [...prev, ...data],
+            isRunning: false,
+            isCheckedAll: true,
         });
+
         localStorage.setItem('filter', JSON.stringify(filter));
     }
 
-    async handleCheck() {
+    async actions(success_text, delay, func, ...args) {
         this.setState({
             isRunning: true
         });
 
         const numberOfPatients = this.state.patientList.length;
         for (let i = 0; i < numberOfPatients; i++) {
-            if (this.state.patientList[i].checked) {
-                const patientList = this.state.patientList;
-                const result = await Core.checkPatient(patientList[i].id)
+            const patientList = this.state.patientList;
+            if (patientList[i].checked) {
+                const result = await func(patientList[i].id, ...args);
                 patientList[i].status = result;
                 this.setState({ patientList });
-                if (i !== numberOfPatients - 1) await Core.delay(this.state.delay);
+                if (i !== numberOfPatients - 1) await Utils.delay(delay);
             }
         }
+        swal(success_text, "", "success");
 
         this.setState({
-            isRunning: false
+            isRunning: false,
         });
+    }
 
-        swal("Đã kiểm tra xong!", "", "success");
+    async handleFilter() {
+        this.getFilterData([]);
+    }
+
+    async handleAdd() {
+        this.getFilterData(this.state.patientList);
+    }
+
+    async removeCheckupReport() {
+        swal({
+            title: "Bạn chắc chứ?",
+            text: "Khi bạn xóa, hệ thống sẽ xóa tất cả các bệnh nhân trong danh sách!",
+            icon: "warning",
+            buttons: true,
+            dangerMode: true,
+        })
+            .then(async (willRemove) => {
+                if (willRemove) {
+                    await this.actions("Đã xóa xong!", this.state.configs.delay, Core.remove, "2");
+                }
+            });
     }
 
     async handleRun() {
@@ -144,30 +152,15 @@ export default class Run extends React.Component {
         })
             .then(async (willRun) => {
                 if (willRun) {
-                    this.setState({
-                        isRunning: true
-                    });
-                    localStorage.setItem('run-mode', this.state.runMode);
-                    const runMode = this.state.runMode;
-                    const numberOfPatients = this.state.patientList.length;
-                    for (let i = 0; i < numberOfPatients; i++) {
-                        const patientList = this.state.patientList;
-                        if (patientList[i].checked) {
-                            const result = await Core.run(
-                                patientList[i].id,
-                                runMode,
-                            );
-                            patientList[i].status = result;
-                            this.setState({ patientList });
-                            if (i !== numberOfPatients - 1) await Core.delay(this.state.delayPost);
-                        }
-                    }
-                    this.setState({
-                        isRunning: false
-                    });
-                    swal("Đã chạy xong!", "", "success");
+                    const runMode = this.state.configs.runMode;
+                    localStorage.setItem('run-mode', runMode);
+                    await this.actions("Đã chạy xong!", this.state.configs.delayPost, Core.run, runMode);
                 }
             });
+    }
+
+    async handleCheck() {
+        await this.actions("Đã kiểm tra xong", this.state.configs.delay, Core.check);
     }
 
     handleCheckAll() {
@@ -210,6 +203,7 @@ export default class Run extends React.Component {
             .map((item, _index) => {
                 return { ...item, index: _index + 1 };
             });
+
         this.setState({
             patientList: refinedData
         });
@@ -248,43 +242,13 @@ export default class Run extends React.Component {
         });
     }
 
-    async removeCheckupReport() {
-        this.setState({
-            isRunning: true
-        })
-        swal({
-            title: "Bạn chắc chứ?",
-            text: "Khi bạn xóa, hệ thống sẽ xóa tất cả các bệnh nhân trong danh sách!",
-            icon: "warning",
-            buttons: true,
-            dangerMode: true,
-        })
-            .then(async (willRemove) => {
-                if (willRemove) {
-                    for (let i = 0; i < this.state.patientList.length; i++) {
-                        const patientList = this.state.patientList;
-                        if (patientList[i].checked) {
-                            const result = await Core.remove(patientList[i].id, "2");
-                            patientList[i].status = result;
-                            this.setState({ patientList });
-                            await Core.delay(DELAY);
-                        }
-                    }
-                    swal("Đã xóa!", "", "success");
-                }
-            });
-        this.setState({
-            isRunning: false,
-        });
-    }
-
-    handleChange(field, isField, e) {
-        if (isField) {
-            let filter = this.state.filter;
-            filter[field] = (e.target.type === "checkbox")
+    handleChange(field, subField, e) {
+        if (subField) {
+            let fields = this.state[field];
+            fields[subField] = (e.target.type === "checkbox")
                 ? e.target.checked
                 : e.target.value || "";
-            this.setState({ filter });
+            this.setState({ [field]: fields });
         } else {
             this.setState({ [field]: e.target.value });
         }
@@ -312,7 +276,7 @@ export default class Run extends React.Component {
                                         className="form-control"
                                         id="filter-name"
                                         value={this.state.filter.name}
-                                        onChange={this.handleChange.bind(this, "name", true)}
+                                        onChange={this.handleChange.bind(this, "filter", "name")}
                                         disabled={this.state.isRunning}
                                     />
                                 </div>
@@ -325,7 +289,7 @@ export default class Run extends React.Component {
                                         className="form-control"
                                         id="filter-phone"
                                         value={this.state.filter.phone}
-                                        onChange={this.handleChange.bind(this, "phone", true)}
+                                        onChange={this.handleChange.bind(this, "filter", "phone")}
                                         disabled={this.state.isRunning}
                                     />
                                 </div>
@@ -340,7 +304,7 @@ export default class Run extends React.Component {
                                         className="form-control"
                                         id="filter-treatment-day"
                                         value={this.state.filter.treatment_day}
-                                        onChange={this.handleChange.bind(this, "treatment_day", true)}
+                                        onChange={this.handleChange.bind(this, "filter", "treatment_day")}
                                         disabled={this.state.isRunning || this.state.filter.from.trim() !== "" || this.state.filter.to.trim() !== ""}
                                     />
                                 </div>
@@ -353,7 +317,7 @@ export default class Run extends React.Component {
                                         className="form-control"
                                         id="filter-from"
                                         value={this.state.filter.from}
-                                        onChange={this.handleChange.bind(this, "from", true)}
+                                        onChange={this.handleChange.bind(this, "filter", "from")}
                                         disabled={this.state.isRunning || this.state.filter.treatment_day.trim() !== ""}
                                     />
                                 </div>
@@ -366,7 +330,7 @@ export default class Run extends React.Component {
                                         className="form-control"
                                         id="filter-to"
                                         value={this.state.filter.to}
-                                        onChange={this.handleChange.bind(this, "to", true)}
+                                        onChange={this.handleChange.bind(this, "filter", "to")}
                                         disabled={this.state.isRunning || this.state.filter.treatment_day.trim() !== ""}
                                     />
                                 </div>
@@ -380,7 +344,7 @@ export default class Run extends React.Component {
                                     className="form-check-input"
                                     type="checkbox"
                                     checked={this.state.filter.is_12}
-                                    onChange={this.handleChange.bind(this, "is_12", true)}
+                                    onChange={this.handleChange.bind(this, "filter", "is_12")}
                                     disabled={this.state.isRunning} />
                                 <label htmlFor="checkbox-1" className="form-check-label d-block text-truncate">
                                     Chỉ "Điều trị tại nhà" và "Điều trị tại cơ sở ý tế"
@@ -392,8 +356,8 @@ export default class Run extends React.Component {
                         <div className="form-group d-flex">
                             <select
                                 className="custom-select form-control m-1"
-                                value={this.state.runMode}
-                                onChange={this.handleChange.bind(this, "runMode", false)}
+                                value={this.state.configs.runMode}
+                                onChange={this.handleChange.bind(this, "configs", "runMode")}
                                 disabled={this.state.isRunning}>
                                 <option value="1">Chỉ khai báo</option>
                                 <option value="2">Chỉ khám</option>
@@ -537,7 +501,7 @@ export default class Run extends React.Component {
                                                 (this.state.patientList[index].status.type !== "unchecked")
                                                     ? (this.state.patientList[index].status.type === "error")
                                                         ? this.state.patientList[index].status.value.map(
-                                                            (_item, _index) => (<span key={Core.genKey()} className={`badge bg-danger m-1`}>{_item}</span>))
+                                                            (_item, _index) => (<span key={Utils.genKey()} className={`badge bg-danger m-1`}>{_item}</span>))
                                                         : (this.state.patientList[index].status.type === "done")
                                                             ? (<span className={`badge bg-warning m-1`}>Xong</span>)
                                                             : (this.state.patientList[index].status.type === "deleted")

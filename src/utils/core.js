@@ -47,16 +47,27 @@ function createQuery(filter, order_by, direction) {
         ward_id: "xaphuong_id",
         was_deleted: "deleted",
         patient_id: "nguoidan_id",
+        deleted: "deleted",
     }
 
     if (filter && typeof (filter) === 'object') {
         for (let key in filter) {
-            if (alias[key] && filter[key].trim() !== "") {
-                let obj = {};
-                obj[alias[key]] = {
-                    "$eq": Utils.removeAccents(filter[key]).trim()
-                };
-                filterRequest.push(obj);
+            if (alias[key]) {
+                if (typeof (filter[key]) === 'string' && filter[key].trim() !== "") {
+                    let obj = {};
+                    obj[alias[key]] = {
+                        "$eq": Utils.removeAccents(filter[key]).trim()
+                    };
+                    filterRequest.push(obj);
+                }
+                else if (typeof (filter[key]) !== 'string') {
+                    let obj = {};
+                    obj[alias[key]] = {
+                        "$eq": filter[key]
+                    };
+                    filterRequest.push(obj);
+                }
+
             }
         }
     }
@@ -73,6 +84,34 @@ function createQuery(filter, order_by, direction) {
     }
 }
 
+/* Switch case for creating query object
+* @param {string} type
+* @param {object} data
+* @return {Query Object}
+*/
+
+async function switchQuery(type, data) {
+    var query = {};
+    switch (type) {
+        case "declare":
+            query = createQuery(data, ORDER_BY.DECLARE, DIRECTION.DESC);
+            break;
+        case "checkup":
+            query = createQuery(data, ORDER_BY.CHECKUP, DIRECTION.DESC);
+            break;
+        case "current_user":
+            query = {};
+            break;
+        case "filter":
+            query = createQuery(data, ORDER_BY.LAST_CHECKUP, DIRECTION.DESC);
+            break;
+        default:
+            query = {}
+            break;
+    }
+    return query;
+}
+
 /* Fetches data from server
 * @param {string} endpoint
 * @param {string} type
@@ -82,17 +121,10 @@ function createQuery(filter, order_by, direction) {
 */
 
 async function fetchData(endpoint, data, type, params) {
-    const query = (type)
-        ? createQuery(
-            { patient_id: data.patientID },
-            (type === "declare") ? ORDER_BY.DECLARE :
-                type === "checkup" && ORDER_BY.CHECKUP,
-            DIRECTION.DESC)
-        : createQuery(data, ORDER_BY.LAST_CHECKUP, DIRECTION.ASC);
-
-    let user_token = await Storage.getToken() || '';
-
     try {
+        const query = await switchQuery(type, data);
+        const user_token = await Storage.getToken() || Utils.DEFAULT.token;
+
         const response = await axios.get(endpoint, {
             params: {
                 ...params,
@@ -110,7 +142,7 @@ async function fetchData(endpoint, data, type, params) {
     } catch (error) {
         return {
             ok: false,
-            error_message: error.response.data.error_message || error.message
+            error_message: error.message || error.response.data.error_message
         }
     }
 }
@@ -122,18 +154,17 @@ async function fetchData(endpoint, data, type, params) {
 */
 
 async function postData(endpoint, data, isLogin) {
-    let user_token = (isLogin)
-        ? await Storage.getToken() || ''
-        : '';
+    const user_token = (!isLogin)
+        ? await Storage.getToken() || Utils.DEFAULT.token
+        : ''
 
     try {
-        const response = await axios.post(endpoint, {
+        const response = await axios.post(endpoint, JSON.stringify(data), {
             headers: {
                 'Content-Type': 'application/json',
                 'Access-Control-Allow-Origin': '*',
                 'X-USER-TOKEN': user_token
-            },
-            data: JSON.stringify(data)
+            }
         });
 
         return {
@@ -143,7 +174,7 @@ async function postData(endpoint, data, isLogin) {
     } catch (error) {
         return {
             ok: false,
-            error_message: error.response.data.error_message || error.message
+            error_message: error.message || error.response.data.error_message
         }
     }
 }
@@ -157,13 +188,17 @@ async function checkDeclare(patientID) {
     const response =
         await fetchData(
             END_POINT.GET_DECLARE,
-            { patientID },
+            { patient_id: patientID, deleted: false },
             "declare",
             { results_per_page: 1 });
 
     if (response.ok) {
-        const { created_at } = response.data.objects[0];
-        return Utils.checkDate(created_at) ? [] : ["Sai ngày khai báo"];
+        if (response.data.objects.length > 0) {
+            const { created_at } = response.data.objects[0];
+            return Utils.checkDate(created_at) ? [] : ["Sai ngày khai báo"];
+        } else {
+            return ["Chưa khai báo lần nào"];
+        }
     }
     else {
         return [response.error_message];
@@ -178,18 +213,26 @@ async function checkDeclare(patientID) {
 async function checkUpReport(patientID) {
     const response =
         await fetchData(
-            END_POINT.GET_CHECK_UP,
-            { patientID },
+            END_POINT.GET_CHECKUP,
+            { patient_id: patientID, deleted: false },
             "checkup",
             { results_per_page: 1 });
 
     if (response.ok) {
-        const { created_at, loidan_bacsi, loai_xu_ly } = response.data.objects[0];
-        let errors = [];
-        if (!Utils.checkDate(created_at)) errors.push("Sai ngày khám");
-        if (!Utils.checkMatch(loidan_bacsi, "advice")) errors.push("Sai lời khuyên");
-        if (!Utils.checkMatch(loai_xu_ly, "treatment-type")) errors.push("Sai loại xử lý");
-        return errors;
+        if (response.data.objects.length > 0) {
+            const { ngay_kham, loidan_bacsi, loai_xu_ly, tinh_trang, chan_doan } = response.data.objects[0];
+            let errors = [];
+            if (!Utils.checkDate(ngay_kham)) errors.push("Sai ngày khám");
+            if (!Utils.checkMatch(loidan_bacsi, "advice")) errors.push("Sai lời khuyên");
+            if (!Utils.checkMatch(chan_doan, "diagnosis")) errors.push("Sai chẩn đoán");
+            if (!Utils.checkMatch(loai_xu_ly, "treatment-type")) errors.push("Sai loại xử lý");
+            if (!Utils.checkMatch(tinh_trang, "health-status")) errors.push("Sai tình trạng");
+
+            return errors;
+        }
+        else {
+            return ["Chưa khám lần nào"];
+        }
     } else {
         return [response.error_message];
     }
@@ -221,17 +264,17 @@ async function postDeclare(patientID) {
 * @return {array} error
 */
 
-async function postCheckUp(patientID) {
+async function postCheckUp(patientID, checkupDate) {
     const checkUpReport = CHECKUP_TEMPLATE;
     const { treatment_type, health_status, diagnosis, advice } =
-        await Storage.getConfig();
+        await Storage.getPostConfig();
 
     checkUpReport.nguoidan_id = patientID;
     checkUpReport.loai_xu_ly = treatment_type;
     checkUpReport.tinh_trang = health_status;
     checkUpReport.chan_doan = diagnosis;
     checkUpReport.loidan_bacsi = advice;
-    checkUpReport.ngay_kham = Utils.genDateString();
+    checkUpReport.ngay_kham = Utils.genDateString(checkupDate);
 
     const response = await postData(
         END_POINT.POST_CHECKUP,
@@ -293,25 +336,35 @@ async function login(username, password) {
         password: password
     }
 
+    const responseData = await Storage.handleAccountInfo({ ...response.data, username: username });
     const response = await postData(END_POINT.POST_LOGIN, data, true);
     if (response.ok) {
-        const { fullname, token, donvi, donvi_id } = response.data;
-        const { ten, xaphuong_id, diachi } = donvi;
-        const user = {
-            name: fullname,
-            token: token,
-        };
-        const medical_station = {
-            name: ten,
-            address: diachi,
-            wardsID: xaphuong_id,
-            stationID: donvi_id
-        }
-        await Storage.setAccountInfo({ username, token, user, medical_station });
         return {
             ok: true,
-            data: { username, token, user, medical_station }
-        };
+            data: responseData
+        }
+    }
+    else {
+        return {
+            ok: false,
+            error_message: response.error_message
+        }
+    }
+}
+
+/* Login account
+* @return {object} data
+*/
+
+async function currentUser() {
+    const response =
+        await fetchData(END_POINT.GET_CURRENT_USER, {}, "current_user");
+    const responseData = await Storage.handleAccountInfo({ ...response.data });
+    if (response.ok) {
+        return {
+            ok: true,
+            data: responseData
+        }
     }
     else {
         return {
@@ -345,11 +398,11 @@ async function filter(filterObject) {
         }
     }
     else {
-        const response = await fetchData(END_POINT.GET_FILTER, filterObject);
+        const response = await fetchData(END_POINT.GET_FILTER, filterObject, "filter");
         if (response.ok) {
             const data = [...response.data.objects];
             for (let i = 1; i < response.data.total_pages; i++) {
-                const response = await fetchData(END_POINT.GET_FILTER, filterObject, undefined, { page: i + 1 });
+                const response = await fetchData(END_POINT.GET_FILTER, filterObject, "filter", { page: i + 1 });
                 if (response.ok) {
                     data.push(...response.data.objects);
                 }
@@ -370,7 +423,7 @@ async function filter(filterObject) {
         }
     }
 
-    return (filter.is_12)
+    return (filterObject.is_12)
         ? result.filter(item => item.treatment_type <= 2)
         : result;
 }
@@ -381,6 +434,12 @@ async function filter(filterObject) {
 */
 
 async function check(patientID) {
+    const configs = await Storage.getPostConfig();
+    localStorage.setItem("advice", configs.advice);
+    localStorage.setItem("diagnosis", configs.diagnosis);
+    localStorage.setItem("treatment-type", configs.treatment_type);
+    localStorage.setItem("health-status", configs.health_status);
+
     const result = [
         ...await checkDeclare(patientID),
         ...await checkUpReport(patientID)
@@ -400,17 +459,35 @@ async function run(patientID, mode) {
     let result = [];
     switch (mode) {
         case "1":
-            result = [...await postDeclare(patientID)];
-            break;
+            {
+                result = [...await postDeclare(patientID)];
+                break;
+            }
         case "2":
-            result = [...await postCheckUp(patientID)];
-            break;
+            {
+                const postConfig = await Storage.getPostConfig();
+                const checkupDate =
+                    (postConfig.use_current_date)
+                        ? undefined
+                        : postConfig.action_date
+                result = [...await postCheckUp(patientID, checkupDate)];
+                break;
+            }
         case "3":
-            result = [
-                ...await postDeclare(patientID),
-                ...await postCheckUp(patientID)
-            ];
-            break;
+            {
+                const postConfig = await Storage.getPostConfig();
+                const checkupDate =
+                    (postConfig.use_current_date)
+                        ? undefined
+                        : postConfig.action_date
+
+                result = [
+                    ...await postDeclare(patientID),
+                    ...await postCheckUp(patientID, checkupDate)
+                ];
+                break;
+            }
+
         default:
             result = [];
             break;
@@ -455,9 +532,10 @@ async function remove(patientID, mode) {
 const Core = {
     check,
     filter,
-    login,
     remove,
-    run
+    run,
+    login,
+    currentUser
 }
 
 export default Core;

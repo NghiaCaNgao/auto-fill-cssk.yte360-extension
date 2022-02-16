@@ -31,11 +31,10 @@ Autofill will help the medical staff speed up the work by auto-generating the re
   - Add info page
   - Add the feature "Press shift key to select a range of items"
 - #### 1.1.0
-  - Add context menu (Save token / Auto Check)
+  - Add context menu (Save token)
+  - Remove "login form" in account tab
   - Move data from window.localStorage to chrome.storage
   - Press Alt + L to open workspace quickly
-  - Status check result right in  chamsocsuckhoe
-  - Generate record right in chamsocsuckhoe
 
 ### Author and contributor
 - Dev: **_Nghiacangao_**

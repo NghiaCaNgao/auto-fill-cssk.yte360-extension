@@ -2,7 +2,7 @@
     "manifest_version": 3,
     "name": "Autofill CSSK",
     "short_name": "AF CSSK",
-    "version": "1.0.4",
+    "version": "1.1.0",
     "author": "NghiaCaNgao",
     "description": "Autofill CSSK. Make your work better.",
     "homepage_url": "https://github.com/NghiaCaNgao/auto-fill-cssk.yte360-extension",
