@@ -1,50 +1,61 @@
 import react from "react";
-import "./Configs.scss";
+import Storage from "../../utils/storage";
 import swal from 'sweetalert';
+import "./Configs.scss";
+import Utils from "../../utils/utils";
 
 export default class Check extends react.Component {
     constructor(props) {
         super(props);
         this.state = {
-            advice: "",
-            treatmentType: "1",
-            healthStatus: "1",
-            diagnosis: "1",
-            delayRequest: "500",
-            delayPost: "10000"
+            advice: Utils.DEFAULT.advice,
+            treatmentType: Utils.DEFAULT.treatment_type,
+            healthStatus: Utils.DEFAULT.health_status,
+            diagnosis: Utils.DEFAULT.diagnosis,
+            delayRequest: Utils.DEFAULT.delay_request,
+            delayPost: Utils.DEFAULT.delay_post,
+            actionDate: Utils.DEFAULT.action_date,
+            useCurrentDate: Utils.DEFAULT.use_current_date
         }
     }
 
     handleChange(field, e) {
         let fields = this.state;
-        fields[field] = e.target.value;
+        (e.target.type === "checkbox")
+            ? fields[field] = e.target.checked
+            : fields[field] = e.target.value || "";
+
         this.setState({ fields });
     }
 
-    componentDidMount() {
+    async componentDidMount() {
+        const { post_config, run_config } = await Storage.getConfig();
         this.setState({
-            advice: localStorage.getItem("advice") || "",
-            treatmentType: localStorage.getItem("treatment-type") || "1",
-            healthStatus: localStorage.getItem("health-status") || "1",
-            diagnosis: localStorage.getItem("diagnosis") || "1",
-            delayRequest: localStorage.getItem("delay-request") || "500",
-            delayPost: localStorage.getItem("delay-post") || "10000"
+            advice: post_config.advice,
+            treatmentType: post_config.treatment_type,
+            healthStatus: post_config.health_status,
+            diagnosis: post_config.diagnosis,
+            actionDate: post_config.action_date,
+            useCurrentDate: post_config.use_current_date,
+            delayRequest: run_config.delay_request,
+            delayPost: run_config.delay_post
         });
-    }
-    saveToLocal(data) {
-        for (let key in data) {
-            localStorage.setItem(key, data[key]);
-        }
     }
 
     async saveData() {
-        this.saveToLocal({
-            "advice": this.state.advice,
-            "treatment-type": this.state.treatmentType,
-            "health-status": this.state.healthStatus,
-            "diagnosis": this.state.diagnosis,
-            "delay-request": this.state.delayRequest,
-            "delay-post": this.state.delayPost
+        await Storage.setConfigInfo({
+            post_config: {
+                advice: this.state.advice,
+                treatment_type: this.state.treatmentType,
+                health_status: this.state.healthStatus,
+                diagnosis: this.state.diagnosis,
+                action_date: this.state.actionDate,
+                use_current_date: this.state.useCurrentDate
+            },
+            run_config: {
+                delay_request: this.state.delayRequest,
+                delay_post: this.state.delayPost
+            }
         });
         swal("Success", "Save successfully!", "success");
     }
@@ -63,7 +74,7 @@ export default class Check extends react.Component {
                     <div
                         className="row"
                         name="config-form">
-                        <div className="col-md-6 p-5 section">
+                        <div className="col-md-4 p-5 section">
                             <div className="form-group">
                                 <label htmlFor="config-advice">Lời dặn</label>
                                 <textarea
@@ -94,7 +105,7 @@ export default class Check extends react.Component {
                                 <div className="col-6">
                                     <select
                                         className="form-control"
-                                        id="config-treatment-type"
+                                        id="config-health-status"
                                         value={this.state.healthStatus}
                                         onChange={this.handleChange.bind(this, "healthStatus")}>
                                         <option value="1">Không ổn định</option>
@@ -105,11 +116,11 @@ export default class Check extends react.Component {
                                 </div>
                             </div>
                             <div className="form-group row">
-                                <label htmlFor="config-health-status" className="col-6 col-form-label">Chẩn đoán</label>
+                                <label htmlFor="config-diagnosis" className="col-6 col-form-label">Chẩn đoán</label>
                                 <div className="col-6">
                                     <select
                                         className="form-control"
-                                        id="config-treatment-type"
+                                        id="config-diagnosis"
                                         value={this.state.diagnosis}
                                         onChange={this.handleChange.bind(this, "diagnosis")}>
                                         <option value="1">Không triệu chứng</option>
@@ -122,7 +133,36 @@ export default class Check extends react.Component {
                                 </div>
                             </div>
                         </div>
-                        <div className="col-md-6 p-5 section">
+                        <div className="col-md-4 p-5 section">
+                            <div className="form-group row">
+                                <div className="col-12">
+                                    <div className="form-check">
+                                        <input
+                                            className="form-check-input"
+                                            type="checkbox"
+                                            checked={this.state.useCurrentDate}
+                                            onChange={this.handleChange.bind(this, "useCurrentDate")} />
+                                        <label htmlFor="checkbox-1" className="form-check-label d-block text-truncate">
+                                            Sử dụng ngày hiện tại làm ngày khai báo
+                                        </label>
+                                    </div>
+                                </div>
+                            </div>
+                            <div className="form-group row">
+                                <label htmlFor="config-action-date" className="col-6 col-form-label">Ngày xử lý</label>
+                                <div className="col-6">
+                                    <input
+                                        type="date"
+                                        className="form-control"
+                                        id="config-action-date"
+                                        value={this.state.actionDate}
+                                        onChange={this.handleChange.bind(this, "actionDate")}
+                                        disabled={this.state.useCurrentDate}>
+                                    </input>
+                                </div>
+                            </div>
+                        </div>
+                        <div className="col-md-4 p-5 section">
                             <div className="form-group row">
                                 <label htmlFor="config-delay-request" className="col-6 col-form-label">Độ trễ giữa các request</label>
                                 <div className="col-6">

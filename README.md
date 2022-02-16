@@ -1,4 +1,4 @@
-#AUTOFILL CSSK
+# AUTOFILL CSSK
 
 **Autofill CSSK** _- A powerful extension that helps you boost your work._
 All you need is to click and wait for the app to do your work.
@@ -21,21 +21,26 @@ Autofill will help the medical staff speed up the work by auto-generating the re
 
 ### Update:
 
-- #### 1.0.0
+- #### 1.0.1
   - Redesign the navbar, increasing the workspace,...
   - Add the "remove the last checkup report " feature
-- #### 1.0.1
+- #### 1.0.2
   - Fix delay time for each request
   - Add delay time for each posting record times
-- #### 1.0.2
+- #### 1.0.3
   - Add info page
   - Add the feature "Press shift key to select a range of items"
+- #### 1.1.0
+  - Add context menu (Save token)
+  - Remove "login form" in account tab
+  - Move data from window.localStorage to chrome.storage
+  - Press Alt + L to open workspace quickly
 
 ### Author and contributor
 - Dev: **_Nghiacangao_**
 - Supporter/Tester: **_Pham Thi Khanh Huyen, Jonathan Bronstein_**
 ### Disclaimer
 
-- All your data are only used in our app and no three-side have that data. (Only in this app and chamsocsuckhoe.yte360.com)
+- All your data are only used in our app and no three-side has that data. (Only in this app and chamsocsuckhoe.yte360.com)
 - All the requests and APIs belong to the CSSK app with host chamsocsuckhoe.yte360.com
 - Using this app is completely voluntary. That is, any wrong data in your account and other information if occur, we (or I) do not responsible for. But, if you encounter this case, please contact me.
