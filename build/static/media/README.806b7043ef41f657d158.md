@@ -35,7 +35,7 @@ Autofill will help the medical staff speed up the work by auto-generating the re
   - Remove "login form" in account tab
   - Move data from window.localStorage to chrome.storage
   - Press Alt + L to open workspace quickly
-### Author and contributor
+### Author and contributors
 - Dev: **_Nghiacangao_**
 - Supporter/Tester: **_Pham Thi Khanh Huyen, Jonathan Bronstein_**
 ### Disclaimer
