@@ -11,7 +11,7 @@ import { NavLink } from "react-router-dom";
 export default class Navbar extends React.Component {
     render() {
         return (
-            <div className="vh-100 p-4 d-flex flex-column justify-content-start align-items-center af-navbar">
+            <div className="vh-100 p-2 d-flex flex-column justify-content-start align-items-center af-navbar">
                  <div className="py-3"></div>
                 <div className="logo">
                     <img src="/assets/logo/logo_48_w.png" height="100%" alt="logo-app"></img>
@@ -24,13 +24,13 @@ export default class Navbar extends React.Component {
                             <NavLink
                                 to="/configs"
                                 activeclassname="active"
-                                className="d-flex align-items-center justify-content-center navbar__icon">
+                                className="d-flex align-items-center justify-content-center navbar__icon mx-auto">
                                 <ConfigIcon />
                             </NavLink >
                             <NavLink
                                 to="/account"
                                 activeclassname="active"
-                                className="d-flex align-items-center justify-content-center navbar__icon">
+                                className="d-flex align-items-center justify-content-center navbar__icon mx-auto">
                                 <AccountIcon />
                             </NavLink >
                         </div>
@@ -41,7 +41,7 @@ export default class Navbar extends React.Component {
                             <NavLink
                                 to="/"
                                 activeclassname="active"
-                                className="d-flex align-items-center justify-content-center navbar__icon">
+                                className="d-flex align-items-center justify-content-center navbar__icon mx-auto">
                                 <RunIcon />
                             </NavLink >
                         </div>
@@ -52,7 +52,7 @@ export default class Navbar extends React.Component {
                             <NavLink
                                 to="/info"
                                 activeclassname="active"
-                                className="d-flex align-items-center justify-content-center navbar__icon">
+                                className="d-flex align-items-center justify-content-center navbar__icon mx-auto">
                                 <InfoIcon />
                             </NavLink >
                         </div>
