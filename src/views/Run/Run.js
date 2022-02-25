@@ -143,9 +143,11 @@ export default class Run extends React.Component {
     }
 
     async handleRun() {
+        const postConfig = await Storage.getPostConfig();
+        const actionDate = (postConfig.use_current_date) ? new Date() : new Date(postConfig.date);
         swal({
             title: "Bạn chắc chứ?",
-            text: "Khi bạn chạy, hệ thống sẽ tự động khai báo cho tất cả các bệnh nhân trong danh sách!",
+            text: `Dữ liệu được chạy cho ngày: ${actionDate.toLocaleDateString("vi")}`,
             icon: "warning",
             buttons: true,
             dangerMode: true,
