@@ -7,24 +7,13 @@
 }
 .navbar__icon {
   position: relative;
-  height: 60px;
-  width: 60px;
+  height: 48px;
+  width: 48px;
   margin-bottom: 10px;
   cursor: pointer;
   text-decoration: none;
   border-radius: 20px;
   transition: all 0.3s ease;
-  &::after {
-    content: "";
-    height: 0;
-    width: 5px;
-    border-radius: 99px;
-    background-color: $purple-500;
-    position: absolute;
-    top: 15px;
-    left: -16px;
-    transition: all 0.3s ease-in-out;
-  }
   svg {
     height: 55%;
     width: 40px;
@@ -39,9 +28,6 @@
     svg path {
       stroke: white;
       stroke-width: 2px;
-    }
-    &::after {
-      height: 50%;
     }
   }
   &:hover {
