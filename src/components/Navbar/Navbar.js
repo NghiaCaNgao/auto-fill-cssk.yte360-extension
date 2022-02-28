@@ -19,7 +19,6 @@ export default class Navbar extends React.Component {
                 <div className="py-5"></div>
                 <div className="d-flex flex-column justify-content-start align-items-center">
                     <div className="af-group-link">
-                        <h4>Setting</h4>
                         <div>
                             <NavLink
                                 to="/configs"
@@ -33,22 +32,12 @@ export default class Navbar extends React.Component {
                                 className="d-flex align-items-center justify-content-center navbar__icon mx-auto">
                                 <AccountIcon />
                             </NavLink >
-                        </div>
-                    </div>
-                    <div className="af-group-link">
-                        <h4>Run</h4>
-                        <div>
                             <NavLink
                                 to="/"
                                 activeclassname="active"
                                 className="d-flex align-items-center justify-content-center navbar__icon mx-auto">
                                 <RunIcon />
                             </NavLink >
-                        </div>
-                    </div>
-                    <div className="af-group-link">
-                        <h4>Info</h4>
-                        <div>
                             <NavLink
                                 to="/info"
                                 activeclassname="active"
