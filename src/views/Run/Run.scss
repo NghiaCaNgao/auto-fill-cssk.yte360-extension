@@ -1,0 +1,20 @@
+@import "../../styles//colors.scss";
+@import "../../styles//fonts.scss";
+@import "../../styles//common.scss";
+
+.af-filter{
+    background-color: white;
+    padding: 30px;
+    border-radius: 10px;
+    @extend .af-shadow-2;
+    .af-u-28{
+        padding: 0 26px 1px 4px;
+    }
+}
+
+.af-table{
+    background: white;
+    border-radius: 10px;
+    @extend .af-shadow-2;
+    padding: 30px;
+}

@@ -1,4 +1,3 @@
-import "./Navbar.scss";
 import "./NavIcon.scss";
 
 import { ReactComponent as ConfigIcon } from "../../assets/icons/chartvertical.svg";
@@ -11,10 +10,10 @@ import { NavLink } from "react-router-dom";
 export default class Navbar extends React.Component {
     render() {
         return (
-            <div className="vh-100 p-2 d-flex flex-column justify-content-start align-items-center af-navbar">
+            <div className="vh-100 p-3 d-flex flex-column justify-content-start align-items-center af-navbar">
                  <div className="py-3"></div>
                 <div className="logo">
-                    <img src="/assets/logo/logo_48_w.png" height="100%" alt="logo-app"></img>
+                    <img src="/assets/logo/logo_48_p.png" height="100%" alt="logo-app"></img>
                 </div>
                 <div className="py-5"></div>
                 <div className="d-flex flex-column justify-content-start align-items-center">

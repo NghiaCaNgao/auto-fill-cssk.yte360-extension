@@ -9,11 +9,6 @@ html {
 .af-full-page {
   @extend .nunito-font;
   color: $gray-900;
-
-  .page {
-    margin-top: 50px;
-    padding: 0 20px;
-  }
 }
 
 .section {
@@ -44,4 +39,8 @@ html {
 
 .btn {
   font-weight: 600;
+}
+
+.af-app{
+  background: $indigo-100;
 }

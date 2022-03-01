@@ -8,8 +8,8 @@ import { HashRouter as Router, Routes, Route } from 'react-router-dom';
 
 function App() {
   return (
-    <Router forceRefresh={true}>
-      <div className="d-flex">
+    <Router forceRefresh={false}>
+      <div className="d-flex af-app">
         <Navbar />
         <div className="container-fluid vh-100 overflow-auto pt-5 px-5">
           <Routes>

@@ -4,12 +4,15 @@
 
 .af-navbar{
   border-right: solid 1.5px $gray-200;
+  background-color: white;
+  @extend .af-shadow-2;
 }
+
 .navbar__icon {
   position: relative;
   height: 48px;
   width: 48px;
-  margin-bottom: 10px;
+  margin-bottom: 20px;
   cursor: pointer;
   text-decoration: none;
   border-radius: 20px;
@@ -38,5 +41,26 @@
         stroke-width: 2px;
       }
     }
+  }
+}
+
+.logo {
+  height: 48px;
+  width: 48px;
+  border-radius: 50%;
+}
+
+.af-group-link {
+  margin-bottom: 50px;
+  width: 100%;
+  svg path {
+    stroke: $gray-300;
+  }
+  h4 {
+    font-size: 1rem;
+    font-weight: 700;
+    text-align: center;
+    color: $gray-300;
+    @extend .nunito-font;
   }
 }

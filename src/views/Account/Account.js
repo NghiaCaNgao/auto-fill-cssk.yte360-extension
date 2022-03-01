@@ -4,6 +4,8 @@ import react from 'react';
 import swal from 'sweetalert';
 import Utils from "../../utils/utils";
 
+import InputText from "../../components/FormGroup/InputText";
+
 export default class Check extends react.Component {
     constructor(props) {
         super(props);
