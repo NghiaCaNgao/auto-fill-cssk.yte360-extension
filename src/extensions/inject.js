@@ -22,8 +22,8 @@ function getToken() {
 }
 
 async function setToken(token) {
-    await Storage.setDataToChromeStorage({ token: token });
-    await Core.currentUser();
+    await Storage.set({ token: token });
+    await Core.setCurrentUser();
 }
 
 chrome.runtime.onMessage.addListener(

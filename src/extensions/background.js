@@ -1,6 +1,7 @@
 /*global chrome*/
 import Storage from "../utils/storage";
 import Notification from "../utils/notification";
+import Config from "../utils/config";
 
 const IndexPath = chrome.runtime.getURL("index.html");
 const HomePagePath = "https://github.com/NghiaCaNgao/auto-fill-cssk.yte360-extension";
@@ -25,7 +26,7 @@ function createContextMenu(id, title, checked = false) {
     });
 }
 
-function saveToken() {
+function callSaveToken() {
     chrome.tabs.query(
         { active: true, currentWindow: true },
         function (tabs) {
@@ -49,9 +50,11 @@ chrome.runtime.onInstalled.addListener(async details => {
     // Create new welcome notification
     if (details.reason === chrome.runtime.OnInstalledReason.INSTALL) {
         // Create new welcome notification for first time
-        await Storage.createDefaultData();
+        const config = new Config();
+        config.save();
+
         await Notification.create({
-            title: "Welcome to Auto Fill",
+            title: "Welcome to Autofill",
             message: "Boost your work right now!",
             id: "af_installed",
         });
@@ -62,7 +65,7 @@ chrome.runtime.onInstalled.addListener(async details => {
             message: "Update successfully",
             id: "af_updated",
             buttons: [{
-                title: "View changelog",
+                title: "Changelog",
             }]
         });
     }
@@ -95,7 +98,7 @@ chrome.commands.onCommand.addListener((command) => {
 chrome.contextMenus.onClicked.addListener(async (info, tab) => {
     switch (info.menuItemId) {
         case "save_token": {
-            saveToken();
+            callSaveToken();
             break;
         }
     }

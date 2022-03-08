@@ -1,10 +1,8 @@
-/*global chrome*/
-
 /*
 * Return All notificationIDs
 */
 
-async function getIDs() {
+async function getIDs(): Promise<string[]> {
     return new Promise((resolve, reject) => {
         chrome.notifications.getAll(notifications => {
             resolve(Object.keys(notifications));
@@ -17,7 +15,7 @@ async function getIDs() {
 * @return {boolean}
 */
 
-async function hasID(notification_id) {
+async function hasID(notification_id: string) {
     const IDSet = new Set(await getIDs());
     return IDSet.has(notification_id);
 }
@@ -28,40 +26,34 @@ async function hasID(notification_id) {
 * return: Promise<string> of status message
 */
 
-async function clear(notification_id) {
+async function clear(notification_id?: string | string[]): Promise<string> {
     return new Promise(async (resolve, reject) => {
         // Clear special notification
         if (notification_id) {
-            // Clear one notification
-            if (typeof (notification_id) == 'string') {
+            // Clear many notifications
+            if (Array.isArray(notification_id)) {
+                try {
+                    const result = await Promise.all(notification_id.map(element => clear(element)));
+                    resolve(result.join(", \n"));
+                } catch (error) {
+                    reject(error);
+                }
+            }
+            else
+                // Clear one notification
                 chrome.notifications.clear(notification_id, (wasCleared) => {
                     wasCleared
                         ? resolve('Cleared ' + notification_id)
                         : reject("Cannot clear notification " + notification_id);
                 });
-                // Clear array of notifications
-            } else if (Array.isArray(notification_id)) {
-                try {
-                    resolve(await Promise.all(
-                        notification_id.map(
-                            element => clear(element))
-                    ));
-                } catch (error) {
-                    reject(error);
-                }
-            } else {
-                reject('Notification_id must be string or array');
+        }
+        // Clear all notifications
+        else {
+            try {
+                resolve(await clear(await getIDs()));
+            } catch (error) {
+                reject(error);
             }
-            // Clear all notifications
-        } else {
-            getIDs()
-                .then(async (notificationIds) => {
-                    try {
-                        resolve(await clear(notificationIds));
-                    } catch (error) {
-                        reject(error);
-                    }
-                });
         }
     });
 }

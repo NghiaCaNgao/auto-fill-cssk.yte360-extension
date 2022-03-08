@@ -3,51 +3,58 @@ import swal from "sweetalert";
 import Core from "../../utils/core";
 import Storage from "../../utils/storage";
 import Utils from "../../utils/utils";
+import { Patient } from "../../utils/patient";
+import { Filter } from "../../utils/filter";
+import { Config } from "../../utils/config";
 
-import "./Run.scss";
 import Layout from "./Layout"
-export default class Run extends React.Component {
-    constructor(props) {
-        super(props);
-        this.state = {
+import "./Run.scss";
+
+type Props = {}
+type State = {
+    isRunning: boolean,
+    context_menu_more_action_show: boolean,
+    isShiftPressing: boolean,
+    lastCheckedItemIndex: number,
+    isCheckedAll: boolean,
+
+    patientList: Patient[],
+    filter: {
+        phone: string,
+        name: string,
+        treatment_day: number,
+        from: number,
+        to: number,
+    },
+    configs: {
+        is_12: boolean,
+        delay: number,
+        delayPost: number,
+        runMode: string,
+        medicalStationID: string,
+        wardID: string,
+    },
+}
+
+export default class Run extends React.Component<Props, State> {
+    async componentDidMount() {
+        const filter = Filter.fromText(localStorage.getItem('filter') || '{}');
+        const filterData = filter.get();
+
+        const config = new Config();
+        const configData = config.get();
+
+        this.setState({
             isRunning: false,
             context_menu_more_action_show: false,
             isShiftPressing: false,
             lastCheckedItemIndex: 0,
             isCheckedAll: true,
-            patientList: [],
-            filter: {
-                phone: Utils.DEFAULT.phone,
-                name: Utils.DEFAULT.name_filter,
-                treatment_day: Utils.DEFAULT.treatment_day,
-                from: Utils.DEFAULT.from,
-                to: Utils.DEFAULT.to,
-                is_12: Utils.DEFAULT.is_12,
-            },
-            configs: {
-                delay: Utils.DEFAULT.delay_request,
-                delayPost: Utils.DEFAULT.delay_post,
-                runMode: Utils.DEFAULT.run_mode,
-            },
-        };
-    }
 
-    async componentDidMount() {
-        let filter = localStorage.getItem('filter') || '{}';
-        const run_config = await Storage.getRunConfig();
-        const account = await Storage.getAccountInfo();
-        filter = JSON.parse(filter);
-
-        this.setState({
-            filter: {
-                phone: filter.phone || Utils.DEFAULT.phone,
-                name: filter.name || Utils.DEFAULT.name_filter,
-                treatment_day: filter.treatment_day || Utils.DEFAULT.treatment_day,
-                from: filter.from || Utils.DEFAULT.from,
-                to: filter.to || Utils.DEFAULT.to,
-                is_12: filter.is_12 || Utils.DEFAULT.is_12,
-            },
+            filter: filterData,
+            config: configData,
             configs: {
+                is_12: run_config.is_12 || Utils.DEFAULT.is_12,
                 runMode: localStorage.getItem('run-mode') || Utils.DEFAULT.run_mode,
                 delay: run_config.delay_request,
                 delayPost: run_config.delay_post,
@@ -56,6 +63,7 @@ export default class Run extends React.Component {
             },
         });
 
+        // Event on press shift key
         window.addEventListener('keydown', (e) => {
             if (e.keyCode === 16) {
                 this.setState({
