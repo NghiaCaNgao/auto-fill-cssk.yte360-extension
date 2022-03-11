@@ -1,3 +1,5 @@
+import React from "react";
+
 import Filter from "./components/Filter"
 import Config from "./components/Config"
 import Action from "./components/Action"

@@ -1,5 +1,5 @@
 import "./info.scss"
-import { Component } from "react"
+import React, { Component } from "react"
 import ReactMarkdown from "react-markdown"
 
 type State = {

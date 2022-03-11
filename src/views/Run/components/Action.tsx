@@ -1,9 +1,12 @@
-import { ReactComponent as PlayIcon } from "../../../assets/icons/play.svg";
-import { ReactComponent as GridIcon } from "../../../assets/icons/grid4.svg";
-import { ReactComponent as PlusIcon } from "../../../assets/icons/pinpaperplus.svg";
-import { ReactComponent as FilterIcon } from "../../../assets/icons/filters3.svg";
-import { ReactComponent as SearchIcon } from "../../../assets/icons/search.svg";
-import { ReactComponent as CheckIcon } from "../../../assets/icons/pinpapercheck.svg";
+import React from "react";
+
+import { ReactComponent as PlayIcon } from "@/assets/icons/play.svg";
+import { ReactComponent as GridIcon } from "@/assets/icons/grid4.svg";
+import { ReactComponent as PlusIcon } from "@/assets/icons/pinpaperplus.svg";
+import { ReactComponent as FilterIcon } from "@/assets/icons/filters3.svg";
+import { ReactComponent as SearchIcon } from "@/assets/icons/search.svg";
+import { ReactComponent as CheckIcon } from "@/assets/icons/pinpapercheck.svg";
+
 
 export default function render() {
     return (

@@ -1,8 +1,8 @@
-import react from "react";
+import React from "react"
 import swal from 'sweetalert';
-import InputText from "../../components/FormGroup/InputText";
-import CustomSelect from "../../components/FormGroup/Select"
-import Checkbox from "../../components/FormGroup/Checkbox";
+import InputText from "@/components/FormGroup/InputText";
+import CustomSelect from "@/components/FormGroup/Select"
+import Checkbox from "@/components/FormGroup/Checkbox";
 import Config, { ConfigObject } from "../../utils/config";
 import { TreatmentSet, HealthStatusSet, DiagnosisSet } from "../../utils/definitions";
 import "./Configs.scss";
@@ -11,7 +11,7 @@ type State = {
     configs: ConfigObject
 }
 
-export default class Check extends react.Component<{}, State>{
+export default class Check extends React.Component<{}, State>{
     handleChange(field: string, e: React.ChangeEvent<HTMLInputElement>) {
         let fields = this.state.configs;
 

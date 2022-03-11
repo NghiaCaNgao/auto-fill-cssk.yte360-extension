@@ -1,4 +1,5 @@
-import Utils from "../../../utils/utils";
+import React from 'react'
+import Utils from "@/utils/utils";
 
 export default function render() {
     return (

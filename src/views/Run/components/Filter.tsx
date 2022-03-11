@@ -1,4 +1,5 @@
-import InputText from "../../../components/FormGroup/InputText";
+import React from  "react";
+import InputText from "@/components/FormGroup/InputText";
 
 export default function render() {
     return (

@@ -1,6 +1,10 @@
-import Checkbox from "../../../components/FormGroup/Checkbox"
-import InputText from "../../../components/FormGroup/InputText"
-import Select from "../../../components/FormGroup/Select"
+import React from "react"
+
+import Checkbox from "@/components/FormGroup/Checkbox"
+import InputText from "@/components/FormGroup/InputText"
+import Select from "@/components/FormGroup/Select"
+
+import { RunModeSet } from "@/utils/definitions"
 
 export default function render() {
     return (
@@ -40,7 +44,14 @@ export default function render() {
                     name="Hành động"
                     value={this.state.configs.runMode}
                     onChange={this.handleChange.bind(this, "configs", "runMode")}
-                    options={["Chỉ khai báo", "Chỉ khám", "Cả khai báo và khám", "Cập nhật tự động", "Xóa phiếu khám gần nhất", "Tạo phiếu kết thúc điều trị"]}
+                    dataset={[
+                        { value: RunModeSet.ONLY_DECLARE, label: "Chỉ khai báo" },
+                        { value: RunModeSet.ONLY_CHECKUP, label: "Chỉ khám" },
+                        { value: RunModeSet.CHECKUP_DECLARE, label: "Cả khai báo và khám" },
+                        { value: RunModeSet.AUTO, label: "Cập nhật tự động" },
+                        { value: RunModeSet.REMOVE_LAST_CHECKUP, label: "Xóa phiếu khám gần nhất" },
+                        { value: RunModeSet.FINISH_TREATMENT, label: "Tạo phiếu kết thúc điều trị" }
+                    ]}
                     disabled={this.state.isRunning}
                 />
             </div>

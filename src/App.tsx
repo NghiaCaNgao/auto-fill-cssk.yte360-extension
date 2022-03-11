@@ -1,13 +1,14 @@
-import Navbar from "./components/Navbar/Navbar";
-import Run from "./views/Run/Run";
-import Account from "./views/Account/Account";
-import Configs from "./views/Configs/Configs";
-import Info from "./views/Info/Info";
+import React from "react";
 
+import Navbar from "@/components/Navbar/Navbar";
+import Run from "@/views/Run/Run";
+import Account from "@/views/Account/Account";
+import Configs from "@/views/Configs/Configs";
+import Info from "@/views/Info/Info";
 import { HashRouter as Router, Routes, Route } from 'react-router-dom';
 
-import './styles/custom.scss';
-import "./styles/index.scss";
+import '@/styles/custom.scss';
+import "@/styles/index.scss";
 
 function App() {
   return (

@@ -1,5 +1,5 @@
-import react from "react"
-import { ReactComponent as SettingIcon } from "../../../assets/icons/settings.svg"
+import React from "react"
+import { ReactComponent as SettingIcon } from "@/assets/icons/settings.svg"
 
 export default function render() {
     return (

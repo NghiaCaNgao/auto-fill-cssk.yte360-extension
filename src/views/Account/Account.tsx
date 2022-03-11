@@ -1,7 +1,7 @@
-import react from 'react';
+import React from "react"
 import swal from 'sweetalert';
-import Storage from "../../utils/storage";
-import InputText from "../../components/FormGroup/InputText";
+import Storage from "@/utils/storage";
+import InputText from "@/components/FormGroup/InputText";
 import Config, { AccountObject, DefaultAccountObject } from '../../utils/config';
 
 import "./Account.scss";
@@ -11,7 +11,7 @@ type State = {
 }
 
 
-export default class Check extends react.Component<{}, State> {
+export default class Check extends React.Component<{}, State> {
     async componentDidMount() {
         const config = await Config.load();
         const accountData = config.getAccount();
