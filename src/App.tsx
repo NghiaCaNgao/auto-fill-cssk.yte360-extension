@@ -7,8 +7,8 @@ import Configs from "@/views/Configs/Configs";
 import Info from "@/views/Info/Info";
 import { HashRouter as Router, Routes, Route } from 'react-router-dom';
 
-import '@/styles/custom.scss';
-import "@/styles/index.scss";
+import './styles/custom.scss';
+import "./styles/index.scss";
 
 function App() {
   return (

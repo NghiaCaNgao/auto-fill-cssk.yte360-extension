@@ -1,4 +1,4 @@
-import react from 'react'
+import React from 'react'
 
 type Props = {
     id: string,
@@ -8,7 +8,7 @@ type Props = {
     disabled?: boolean
 }
 
-export default class Checkbox extends react.Component<Props, {}> {
+export default class Checkbox extends React.Component<Props, {}> {
     render() {
         return (
             <div className="form-check">
