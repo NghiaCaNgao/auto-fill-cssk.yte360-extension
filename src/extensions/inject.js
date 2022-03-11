@@ -1,6 +1,6 @@
 /*global chrome*/
 import Storage from "../utils/storage";
-import Core from "../utils/core";
+import { setCurrentUser } from "../utils/core";
 import swal from "sweetalert";
 
 function getToken() {
@@ -22,8 +22,7 @@ function getToken() {
 }
 
 async function setToken(token) {
-    await Storage.set({ token: token });
-    await Core.setCurrentUser();
+    await setCurrentUser(token);
 }
 
 chrome.runtime.onMessage.addListener(

@@ -56,7 +56,8 @@ enum RunModeSet{
     CHECKUP_DECLARE = 4,
     REMOVE_LAST_CHECKUP = 5,
     REMOVE_LAST_DECLARE = 6,
-    FINISH_TREATMENT = 7,
+    REMOVE_CHECKUP_DECLARE = 7,
+    FINISH_TREATMENT = 8,
 }
 
 enum ActionSet {

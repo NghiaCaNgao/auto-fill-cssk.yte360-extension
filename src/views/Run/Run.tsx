@@ -1,48 +1,39 @@
 import React from "react";
 import swal from "sweetalert";
-import Core from "../../utils/core";
-import Storage from "../../utils/storage";
 import Utils from "../../utils/utils";
-import { Patient } from "../../utils/patient";
-import { Filter } from "../../utils/filter";
-import { Config } from "../../utils/config";
+import Patient from "../../utils/patient";
+import Filter, { FilterObject } from "../../utils/filter";
+import Config, { AccountObject, ConfigObject } from "../../utils/config";
 
 import Layout from "./Layout"
 import "./Run.scss";
+import { StatusCheckSet } from "../../utils/definitions";
 
-type Props = {}
-type State = {
-    isRunning: boolean,
-    context_menu_more_action_show: boolean,
-    isShiftPressing: boolean,
-    lastCheckedItemIndex: number,
-    isCheckedAll: boolean,
-
-    patientList: Patient[],
-    filter: {
-        phone: string,
-        name: string,
-        treatment_day: number,
-        from: number,
-        to: number,
-    },
-    configs: {
-        is_12: boolean,
-        delay: number,
-        delayPost: number,
-        runMode: string,
-        medicalStationID: string,
-        wardID: string,
-    },
+enum ToggleButtonSet {
+    MoreAction = "context_menu_more_action_show",
 }
 
-export default class Run extends React.Component<Props, State> {
-    async componentDidMount() {
-        const filter = Filter.fromText(localStorage.getItem('filter') || '{}');
-        const filterData = filter.get();
 
-        const config = new Config();
-        const configData = config.get();
+type State = {
+    isRunning: boolean,
+    isShiftPressing: boolean,
+    isCheckedAll: boolean,
+    context_menu_more_action_show: boolean,
+    lastCheckedItemIndex: number,
+
+    patientList: Patient[],
+    filter: FilterObject,
+    config: ConfigObject,
+    account: AccountObject
+}
+
+export default class Run extends React.Component<{}, State> {
+    async componentDidMount() {
+        const filter = Filter.load();
+        const config = await Config.load();
+        const filterData = filter.get();
+        const configData = config.getConfigs();
+        const account = config.getAccount();
 
         this.setState({
             isRunning: false,
@@ -53,82 +44,41 @@ export default class Run extends React.Component<Props, State> {
 
             filter: filterData,
             config: configData,
-            configs: {
-                is_12: run_config.is_12 || Utils.DEFAULT.is_12,
-                runMode: localStorage.getItem('run-mode') || Utils.DEFAULT.run_mode,
-                delay: run_config.delay_request,
-                delayPost: run_config.delay_post,
-                medicalStationID: account.medical_station.stationID,
-                wardID: account.medical_station.wardsID
-            },
         });
 
         // Event on press shift key
-        window.addEventListener('keydown', (e) => {
-            if (e.keyCode === 16) {
-                this.setState({
-                    isShiftPressing: true
-                });
-            }
-        });
-
-        window.addEventListener('keyup', (e) => {
-            if (e.keyCode === 16) {
-                this.setState({
-                    isShiftPressing: false
-                });
-            }
-        });
+        window.addEventListener('keydown', this.handleShiftKey.bind(this));
+        window.addEventListener('keyup', this.handleShiftKey.bind(this));
     }
 
-    async getFilterData(prev) {
-        this.setState({
-            isRunning: true
-        });
+    handleShiftKey(event: React.KeyboardEvent<HTMLDivElement>) {
+        if (event.shiftKey) {
+            this.setState({
+                isShiftPressing: (event.type === 'keydown') ? true : false
+            });
+        }
+    }
 
+    getLastCheckedItem(): number {
+        return this.state.patientList.reduce((prev, currPatient, index) => (currPatient.check) ? index : prev, 0);
+    }
+
+    async getFilterData(prev: Patient[]) {
+        this.setState({ isRunning: true });
         const filter = this.state.filter;
-        const prevLength = prev.length;
-
-        let data = await Core.filter(
+        let data = await Patient.filter(
             {
                 ...filter,
-                medical_station: this.state.configs.medicalStationID,
-                ward_id: this.state.configs.wardID
+                medical_station_id: this.state.account.medical_station.medical_station_id,
+                wards_id: this.state.account.medical_station.wards_id,
+                token: this.state.account.token
             });
-
-        data = data.map((item, _index) => {
-            return { ...item, index: _index + prevLength + 1 };
-        })
-
         this.setState({
             patientList: [...prev, ...data],
             isRunning: false,
             isCheckedAll: true,
         });
-
         localStorage.setItem('filter', JSON.stringify(filter));
-    }
-
-    async actions(success_text, delay, func, ...args) {
-        this.setState({
-            isRunning: true
-        });
-
-        const numberOfPatients = this.state.patientList.length;
-        for (let i = 0; i < numberOfPatients; i++) {
-            const patientList = this.state.patientList;
-            if (patientList[i].checked) {
-                const result = await func(patientList[i].id, ...args);
-                patientList[i].status = result;
-                this.setState({ patientList });
-                if (i !== numberOfPatients - 1) await Utils.delay(delay);
-            }
-        }
-        swal(success_text, "", "success");
-
-        this.setState({
-            isRunning: false,
-        });
     }
 
     async handleFilter() {
@@ -139,50 +89,58 @@ export default class Run extends React.Component<Props, State> {
         this.getFilterData(this.state.patientList);
     }
 
-    async removeCheckupReport() {
-        swal({
-            title: "Bạn chắc chứ?",
-            text: "Khi bạn xóa, hệ thống sẽ xóa tất cả các bệnh nhân trong danh sách!",
-            icon: "warning",
-            buttons: true,
-            dangerMode: true,
-        })
-            .then(async (willRemove) => {
-                if (willRemove) {
-                    await this.actions("Đã xóa xong!", this.state.configs.delay, Core.remove, "2");
-                }
-            });
-    }
-
     async handleRun() {
-        const postConfig = await Storage.getPostConfig();
-        const actionDate = (postConfig.use_current_date) ? new Date() : new Date(postConfig.date);
-        swal({
+        const actionDate = (this.state.config.use_current_date)
+            ? new Date()
+            : new Date(this.state.config.action_date);
+
+        const willRun = await swal({
             title: "Bạn chắc chứ?",
             text: `Dữ liệu được chạy cho ngày: ${actionDate.toLocaleDateString("vi")}`,
             icon: "warning",
-            buttons: true,
+            buttons: [true],
             dangerMode: true,
-        })
-            .then(async (willRun) => {
-                if (willRun) {
-                    const runMode = this.state.configs.runMode;
-                    localStorage.setItem('run-mode', runMode);
-                    await this.actions("Đã chạy xong!", this.state.configs.delayPost, Core.run, runMode);
+        });
+
+        if (willRun) {
+            this.setState({ isRunning: true });
+            const patientLength = this.state.patientList.length;
+            const lastCheckedItem = this.getLastCheckedItem();
+
+            for (let i = 0; i < patientLength; i++) {
+                if (this.state.patientList[i].check) {
+                    this.state.patientList[i].run(this.state.config.run_mode);
+                    if (i !== lastCheckedItem)
+                        await Utils.delay(this.state.config.delay_per_post);
                 }
-            });
+            }
+            swal("Đã chạy xong", "", "success");
+            this.setState({ isRunning: false });
+        }
     }
 
     async handleCheck() {
-        await this.actions("Đã kiểm tra xong", this.state.configs.delay, Core.check);
+        this.setState({ isRunning: true });
+        const patientLength = this.state.patientList.length;
+        const lastCheckedItem = this.getLastCheckedItem();
+
+        for (let i = 0; i < patientLength; i++) {
+            if (this.state.patientList[i].check) {
+                this.state.patientList[i].check();
+                if (i !== lastCheckedItem)
+                    await Utils.delay(this.state.config.delay_per_request);
+            }
+        }
+        swal("Đã kiểm tra xong", "", "success");
+        this.setState({ isRunning: false });
     }
 
     handleCheckAll() {
         const isCheckedAll = !this.state.isCheckedAll;
         const patientList = this.state.patientList;
-        for (let i = 0; i < patientList.length; i++) {
-            patientList[i].checked = isCheckedAll;
-        }
+        for (let i = 0; i < patientList.length; i++)
+            patientList[i].patient.checked = isCheckedAll;
+
         this.setState({
             isCheckedAll,
             patientList,
@@ -190,64 +148,38 @@ export default class Run extends React.Component<Props, State> {
         });
     }
 
-    handleCheckItem(index) {
+    handleCheckItem(index: number) {
         const patientList = this.state.patientList;
         if (this.state.isShiftPressing) {
             const start = Math.min(this.state.lastCheckedItemIndex, index);
             const end = Math.max(this.state.lastCheckedItemIndex, index);
-            const state = !patientList[index].checked;
-            for (let i = start; i <= end; i++) {
-                patientList[i].checked = state;
-            }
-        } else {
-            patientList[index].checked = !patientList[index].checked;
-        }
+            const state = !patientList[index].patient.checked;
+
+            for (let i = start; i <= end; i++)
+                patientList[i].patient.checked = state;
+        } else
+            patientList[index].patient.checked = !patientList[index].patient.checked;
+
         this.setState({
             patientList,
-            isCheckedAll: false,
+            isCheckedAll: patientList.every(item => item.patient.checked),
             lastCheckedItemIndex: index
         });
     }
 
-    refineData() {
-        const data = this.state.patientList;
-        const refinedData = data
-            .filter(item =>
-                (item.status.type === "error" || item.status.type === "unchecked"))
-            .map((item, _index) => {
-                return { ...item, index: _index + 1 };
-            });
-
+    refineFailedData() {
         this.setState({
-            patientList: refinedData
+            patientList: this.state.patientList.filter(item => {
+                const status = item.patient.status.status;
+                return (status === StatusCheckSet.ERROR || status === StatusCheckSet.UNCHECKED);
+            })
         });
-        return refinedData;
     }
 
-    removeSelected() {
-        const data = this.state.patientList;
-        const refinedData = data
-            .filter(item => !item.checked)
-            .map((item, _index) => {
-                return { ...item, index: _index + 1 }
-            });
+    removeSelectedData() {
         this.setState({
-            patientList: refinedData
+            patientList: this.state.patientList.filter(item => !item.patient.checked)
         });
-        return refinedData;
-    }
-
-    removeUnselected() {
-        const data = this.state.patientList;
-        const refinedData = data
-            .filter(item => item.checked)
-            .map((item, _index) => {
-                return { ...item, index: _index + 1 }
-            });
-        this.setState({
-            patientList: refinedData
-        });
-        return refinedData;
     }
 
     clearData() {
@@ -256,20 +188,16 @@ export default class Run extends React.Component<Props, State> {
         });
     }
 
-    handleChange(field, subField, e) {
-        if (subField) {
-            let fields = this.state[field];
-            fields[subField] = (e.target.type === "checkbox")
-                ? e.target.checked
-                : e.target.value || "";
-            this.setState({ [field]: fields });
-        } else {
-            this.setState({ [field]: e.target.value });
-        }
-
+    handleChange(field: string, subField: string, event: React.ChangeEvent<HTMLInputElement>) {
+        let fields = this.state[field];
+        fields[subField] = (event.target.type === "checkbox")
+            ? event.target.checked
+            : event.target.value || "";
+        if (field === "configs") this.setState({ config: fields as ConfigObject });
+        else if (field === "filter") this.setState({ filter: fields as FilterObject });
     }
 
-    toggleButton(field) {
+    toggleButton(field: ToggleButtonSet) {
         this.setState({
             [field]: !this.state[field]
         });

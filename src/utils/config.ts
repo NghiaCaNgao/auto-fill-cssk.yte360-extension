@@ -70,7 +70,7 @@ class Config {
     static async load(): Promise<Config> {
         const config = new Config();
         config.setConfigs(await Config.getSavedConfigs());
-        config.setAccounts(await Config.getSavedAccount());
+        config.setAccount(await Config.getSavedAccount());
         return config;
     }
 
@@ -95,7 +95,7 @@ class Config {
         await config.save();
     }
 
-    get(): { configs: ConfigObject, account: AccountObject } {
+    getAllConfig(): { configs: ConfigObject, account: AccountObject } {
         return {
             configs: this.configs,
             account: this.account,
@@ -106,7 +106,7 @@ class Config {
         this.configs = { ...this.configs, ...configs };
     }
 
-    setAccounts(account: AccountObject) {
+    setAccount(account: AccountObject) {
         this.account = { ...this.account, ...account };
     }
 
@@ -123,7 +123,7 @@ class Config {
                 medical_station_id: donvi_id,
             },
         };
-        this.setAccounts(account);
+        this.setAccount(account);
     }
 
     getConfigs(): ConfigObject {
@@ -145,4 +145,4 @@ class Config {
 }
 
 export default Config;
-export { ConfigObject, AccountObject };
+export { ConfigObject, AccountObject, DefaultAccountObject, DefaultConfigObject };

@@ -22,6 +22,7 @@ interface FilterObject {
     wards_id?: string,
     was_deleted?: boolean,
     patient_id?: string,
+    token?: string
 }
 
 const DefaultFilterObject: FilterObject = {
@@ -35,6 +36,7 @@ const DefaultFilterObject: FilterObject = {
     wards_id: "",
     was_deleted: false,
     patient_id: "",
+    token: ""
 };
 
 
@@ -46,19 +48,16 @@ class Filter {
     }
 
     static load(): Filter {
-        //TODO: load filter
-        const textJson = "";
-
+        const textJson = localStorage.getItem('filter');
         const data = JSON.parse(textJson);
-        const filter: FilterObject = {
+        return new Filter({
             phone: data.phone,
             name: data.name,
             address: data.address,
             treatment_day: data.treatment_day,
             from: data.from,
-            to: data.to,
-        };
-        return new Filter(filter);
+            to: data.to           
+        });
     }
 
     get(): FilterObject {

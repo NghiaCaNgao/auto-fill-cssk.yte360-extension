@@ -1,3 +1,6 @@
+import { config } from "process";
+import Config from "./config";
+
 /* Get data from chrome storage
 * @param {Array of String} key
 * @return {Promise} of Object
@@ -22,6 +25,8 @@ async function set(data: object): Promise<void> {
 
 async function clear(): Promise<void> {
     chrome.storage.sync.clear();
+    const config = new Config();
+    await config.save();
 }
 
 const Storage = {

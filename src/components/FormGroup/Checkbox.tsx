@@ -1,14 +1,19 @@
 import react from 'react'
 
-export default class Checkbox extends react.Component {
-    constructor(props) {
-        super(props);
-    }
+type Props = {
+    id: string,
+    name: string,
+    checked: boolean,
+    onChange: (event: React.ChangeEvent<HTMLInputElement>) => void,
+    disabled?: boolean
+}
 
+export default class Checkbox extends react.Component<Props, {}> {
     render() {
         return (
             <div className="form-check">
                 <input
+                    id={"checkbox-" + this.props.id}
                     className="form-check-input"
                     type="checkbox"
                     checked={this.props.checked}

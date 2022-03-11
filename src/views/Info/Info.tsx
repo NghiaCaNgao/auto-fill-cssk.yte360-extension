@@ -1,17 +1,14 @@
 import "./info.scss"
 import { Component } from "react"
 import ReactMarkdown from "react-markdown"
-import README from "../../data/README.md"
 
-export default class Info extends Component {
-    constructor(props) {
-        super(props)
-        this.state = {
-            data: null,
-        }
-    }
+type State = {
+    data: string
+}
+
+export default class Info extends Component<{}, State> {
     componentDidMount() {
-        fetch(README)
+        fetch(chrome.extension.getURL("/README.md"))
             .then((response) => response.text())
             .then((text) => {
                 this.setState({

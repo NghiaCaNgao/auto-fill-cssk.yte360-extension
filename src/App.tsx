@@ -6,9 +6,12 @@ import Info from "./views/Info/Info";
 
 import { HashRouter as Router, Routes, Route } from 'react-router-dom';
 
+import './styles/custom.scss';
+import "./styles/index.scss";
+
 function App() {
   return (
-    <Router forceRefresh={false}>
+    <Router>
       <div className="d-flex af-app">
         <Navbar />
         <div className="container-fluid vh-100 overflow-auto pt-5 px-5">

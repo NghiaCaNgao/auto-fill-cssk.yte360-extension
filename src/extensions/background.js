@@ -1,7 +1,6 @@
 /*global chrome*/
 import Storage from "../utils/storage";
 import Notification from "../utils/notification";
-import Config from "../utils/config";
 
 const IndexPath = chrome.runtime.getURL("index.html");
 const HomePagePath = "https://github.com/NghiaCaNgao/auto-fill-cssk.yte360-extension";
@@ -49,10 +48,9 @@ chrome.runtime.onInstalled.addListener(async details => {
 
     // Create new welcome notification
     if (details.reason === chrome.runtime.OnInstalledReason.INSTALL) {
+        await Storage.clear();
+        
         // Create new welcome notification for first time
-        const config = new Config();
-        config.save();
-
         await Notification.create({
             title: "Welcome to Autofill",
             message: "Boost your work right now!",
